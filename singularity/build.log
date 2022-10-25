@@ -1,0 +1,672 @@
+INFO:    Starting build...
+Getting image source signatures
+Copying blob sha256:25e1b86ea3b632677b026da8bf453245bcff7902f7aff2e7877ac90d05a99a7a
+Copying blob sha256:9bfa49b064c8a55a1af987009a50aa4174eb86e9f88e5dbae214287b0992edb7
+Copying blob sha256:ab995ea0d0d04454a946074e6077c0bc8edff70440d6d7dd8956b2b3785a8747
+Copying blob sha256:978ea3dcd5fbbe5e26dbe479d029e531818bbe19901d311bcfd64899b800577c
+Copying blob sha256:cde16ef91ac2e9d6eb98d6c5a0005d01e2f36175568aabed92be34489efb25ae
+Copying blob sha256:200f3698d6ff27b26b05732ed648ce6f2b034719f48b37c36dbe361711942e7f
+Copying blob sha256:6c10428f3e1be8c5f6652c9ee76697fb6401c30cdd0428c3e3ea2f5fb4655fbb
+Copying blob sha256:3b65ec22a9e96affe680712973e88355927506aa3f792ff03330f3a3eb601a98
+Copying blob sha256:daf4a0e65bea44c5376a97d6129a379bcd1ddf415dc07e7c7c61e4da401bfe7a
+Copying blob sha256:25c7edfc13ebcb06cd02c42dbecc5341c35deab208bdbbe70f2456ee9fbb8876
+Copying config sha256:f16909d641508be4890dcea9949bc28213557cacf90402649ba3bf53e03ccaae
+Writing manifest to image destination
+Storing signatures
+2022/10/04 22:04:52  info unpack layer: sha256:3b65ec22a9e96affe680712973e88355927506aa3f792ff03330f3a3eb601a98
+2022/10/04 22:04:54  info unpack layer: sha256:9bfa49b064c8a55a1af987009a50aa4174eb86e9f88e5dbae214287b0992edb7
+2022/10/04 22:04:54  info unpack layer: sha256:cde16ef91ac2e9d6eb98d6c5a0005d01e2f36175568aabed92be34489efb25ae
+2022/10/04 22:04:56  info unpack layer: sha256:978ea3dcd5fbbe5e26dbe479d029e531818bbe19901d311bcfd64899b800577c
+2022/10/04 22:04:56  info unpack layer: sha256:6c10428f3e1be8c5f6652c9ee76697fb6401c30cdd0428c3e3ea2f5fb4655fbb
+2022/10/04 22:04:56  info unpack layer: sha256:25e1b86ea3b632677b026da8bf453245bcff7902f7aff2e7877ac90d05a99a7a
+2022/10/04 22:06:27  info unpack layer: sha256:ab995ea0d0d04454a946074e6077c0bc8edff70440d6d7dd8956b2b3785a8747
+2022/10/04 22:06:27  info unpack layer: sha256:25c7edfc13ebcb06cd02c42dbecc5341c35deab208bdbbe70f2456ee9fbb8876
+2022/10/04 22:08:43  info unpack layer: sha256:daf4a0e65bea44c5376a97d6129a379bcd1ddf415dc07e7c7c61e4da401bfe7a
+2022/10/04 22:08:43  info unpack layer: sha256:200f3698d6ff27b26b05732ed648ce6f2b034719f48b37c36dbe361711942e7f
+INFO:    Copying requirements.txt to /opt/gcae_requirements.txt
+INFO:    Running post scriptlet
++ apt-get update
+Get:1 http://archive.ubuntu.com/ubuntu focal InRelease [265 kB]
+Get:2 http://security.ubuntu.com/ubuntu focal-security InRelease [114 kB]
+Get:3 https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64  InRelease [1581 B]
+Get:4 http://archive.ubuntu.com/ubuntu focal-updates InRelease [114 kB]
+Get:5 http://archive.ubuntu.com/ubuntu focal-backports InRelease [108 kB]
+Get:6 https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64  Packages [703 kB]
+Get:7 http://security.ubuntu.com/ubuntu focal-security/restricted amd64 Packages [1556 kB]
+Get:8 http://archive.ubuntu.com/ubuntu focal/universe amd64 Packages [11.3 MB]
+Get:9 http://security.ubuntu.com/ubuntu focal-security/multiverse amd64 Packages [27.5 kB]
+Get:10 http://security.ubuntu.com/ubuntu focal-security/universe amd64 Packages [915 kB]
+Get:11 http://security.ubuntu.com/ubuntu focal-security/main amd64 Packages [2183 kB]
+Get:12 http://archive.ubuntu.com/ubuntu focal/multiverse amd64 Packages [177 kB]
+Get:13 http://archive.ubuntu.com/ubuntu focal/restricted amd64 Packages [33.4 kB]
+Get:14 http://archive.ubuntu.com/ubuntu focal/main amd64 Packages [1275 kB]
+Get:15 http://archive.ubuntu.com/ubuntu focal-updates/universe amd64 Packages [1212 kB]
+Get:16 http://archive.ubuntu.com/ubuntu focal-updates/restricted amd64 Packages [1671 kB]
+Get:17 http://archive.ubuntu.com/ubuntu focal-updates/main amd64 Packages [2649 kB]
+Get:18 http://archive.ubuntu.com/ubuntu focal-updates/multiverse amd64 Packages [30.2 kB]
+Get:19 http://archive.ubuntu.com/ubuntu focal-backports/universe amd64 Packages [27.4 kB]
+Get:20 http://archive.ubuntu.com/ubuntu focal-backports/main amd64 Packages [55.2 kB]
+Fetched 24.5 MB in 14s (1688 kB/s)
+Reading package lists...
++ apt-get upgrade -y
+Reading package lists...
+Building dependency tree...
+Reading state information...
+Calculating upgrade...
+The following packages have been kept back:
+  libcudnn8 libcudnn8-dev libnccl-dev libnccl2
+The following packages will be upgraded:
+  base-files cuda-toolkit-11-config-common cuda-toolkit-config-common
+  libgnutls30 libpcre2-8-0 libsqlite3-0 libsystemd0 libudev1 linux-libc-dev
+9 upgraded, 0 newly installed, 0 to remove and 4 not upgraded.
+Need to get 3132 kB of archives.
+After this operation, 22.5 kB of additional disk space will be used.
+Get:1 https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64  cuda-toolkit-11-config-common 11.8.89-1 [16.4 kB]
+Get:2 https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64  cuda-toolkit-config-common 11.8.89-1 [16.4 kB]
+Get:3 http://archive.ubuntu.com/ubuntu focal-updates/main amd64 base-files amd64 11ubuntu5.6 [60.4 kB]
+Get:4 http://archive.ubuntu.com/ubuntu focal-updates/main amd64 libsystemd0 amd64 245.4-4ubuntu3.18 [269 kB]
+Get:5 http://archive.ubuntu.com/ubuntu focal-updates/main amd64 libpcre2-8-0 amd64 10.34-7ubuntu0.1 [198 kB]
+Get:6 http://archive.ubuntu.com/ubuntu focal-updates/main amd64 libudev1 amd64 245.4-4ubuntu3.18 [76.3 kB]
+Get:7 http://archive.ubuntu.com/ubuntu focal-updates/main amd64 libgnutls30 amd64 3.6.13-2ubuntu1.7 [828 kB]
+Get:8 http://archive.ubuntu.com/ubuntu focal-updates/main amd64 libsqlite3-0 amd64 3.31.1-4ubuntu0.4 [549 kB]
+Get:9 http://archive.ubuntu.com/ubuntu focal-updates/main amd64 linux-libc-dev amd64 5.4.0-126.142 [1118 kB]
+debconf: delaying package configuration, since apt-utils is not installed
+Fetched 3132 kB in 4s (728 kB/s)
+(Reading database ... (Reading database ... 5%(Reading database ... 10%(Reading database ... 15%(Reading database ... 20%(Reading database ... 25%(Reading database ... 30%(Reading database ... 35%(Reading database ... 40%(Reading database ... 45%(Reading database ... 50%(Reading database ... 55%(Reading database ... 60%(Reading database ... 65%(Reading database ... 70%(Reading database ... 75%(Reading database ... 80%(Reading database ... 85%(Reading database ... 90%(Reading database ... 95%(Reading database ... 100%(Reading database ... 12877 files and directories currently installed.)
+Preparing to unpack .../base-files_11ubuntu5.6_amd64.deb ...
+Unpacking base-files (11ubuntu5.6) over (11ubuntu5.5) ...
+Setting up base-files (11ubuntu5.6) ...
+Installing new version of config file /etc/issue ...
+Installing new version of config file /etc/issue.net ...
+Installing new version of config file /etc/lsb-release ...
+(Reading database ... (Reading database ... 5%(Reading database ... 10%(Reading database ... 15%(Reading database ... 20%(Reading database ... 25%(Reading database ... 30%(Reading database ... 35%(Reading database ... 40%(Reading database ... 45%(Reading database ... 50%(Reading database ... 55%(Reading database ... 60%(Reading database ... 65%(Reading database ... 70%(Reading database ... 75%(Reading database ... 80%(Reading database ... 85%(Reading database ... 90%(Reading database ... 95%(Reading database ... 100%(Reading database ... 12877 files and directories currently installed.)
+Preparing to unpack .../libsystemd0_245.4-4ubuntu3.18_amd64.deb ...
+Unpacking libsystemd0:amd64 (245.4-4ubuntu3.18) over (245.4-4ubuntu3.17) ...
+Setting up libsystemd0:amd64 (245.4-4ubuntu3.18) ...
+(Reading database ... (Reading database ... 5%(Reading database ... 10%(Reading database ... 15%(Reading database ... 20%(Reading database ... 25%(Reading database ... 30%(Reading database ... 35%(Reading database ... 40%(Reading database ... 45%(Reading database ... 50%(Reading database ... 55%(Reading database ... 60%(Reading database ... 65%(Reading database ... 70%(Reading database ... 75%(Reading database ... 80%(Reading database ... 85%(Reading database ... 90%(Reading database ... 95%(Reading database ... 100%(Reading database ... 12877 files and directories currently installed.)
+Preparing to unpack .../libpcre2-8-0_10.34-7ubuntu0.1_amd64.deb ...
+Unpacking libpcre2-8-0:amd64 (10.34-7ubuntu0.1) over (10.34-7) ...
+Setting up libpcre2-8-0:amd64 (10.34-7ubuntu0.1) ...
+(Reading database ... (Reading database ... 5%(Reading database ... 10%(Reading database ... 15%(Reading database ... 20%(Reading database ... 25%(Reading database ... 30%(Reading database ... 35%(Reading database ... 40%(Reading database ... 45%(Reading database ... 50%(Reading database ... 55%(Reading database ... 60%(Reading database ... 65%(Reading database ... 70%(Reading database ... 75%(Reading database ... 80%(Reading database ... 85%(Reading database ... 90%(Reading database ... 95%(Reading database ... 100%(Reading database ... 12877 files and directories currently installed.)
+Preparing to unpack .../libudev1_245.4-4ubuntu3.18_amd64.deb ...
+Unpacking libudev1:amd64 (245.4-4ubuntu3.18) over (245.4-4ubuntu3.17) ...
+Setting up libudev1:amd64 (245.4-4ubuntu3.18) ...
+(Reading database ... (Reading database ... 5%(Reading database ... 10%(Reading database ... 15%(Reading database ... 20%(Reading database ... 25%(Reading database ... 30%(Reading database ... 35%(Reading database ... 40%(Reading database ... 45%(Reading database ... 50%(Reading database ... 55%(Reading database ... 60%(Reading database ... 65%(Reading database ... 70%(Reading database ... 75%(Reading database ... 80%(Reading database ... 85%(Reading database ... 90%(Reading database ... 95%(Reading database ... 100%(Reading database ... 12877 files and directories currently installed.)
+Preparing to unpack .../libgnutls30_3.6.13-2ubuntu1.7_amd64.deb ...
+Unpacking libgnutls30:amd64 (3.6.13-2ubuntu1.7) over (3.6.13-2ubuntu1.6) ...
+Setting up libgnutls30:amd64 (3.6.13-2ubuntu1.7) ...
+(Reading database ... (Reading database ... 5%(Reading database ... 10%(Reading database ... 15%(Reading database ... 20%(Reading database ... 25%(Reading database ... 30%(Reading database ... 35%(Reading database ... 40%(Reading database ... 45%(Reading database ... 50%(Reading database ... 55%(Reading database ... 60%(Reading database ... 65%(Reading database ... 70%(Reading database ... 75%(Reading database ... 80%(Reading database ... 85%(Reading database ... 90%(Reading database ... 95%(Reading database ... 100%(Reading database ... 12877 files and directories currently installed.)
+Preparing to unpack .../libsqlite3-0_3.31.1-4ubuntu0.4_amd64.deb ...
+Unpacking libsqlite3-0:amd64 (3.31.1-4ubuntu0.4) over (3.31.1-4ubuntu0.3) ...
+Preparing to unpack .../cuda-toolkit-11-config-common_11.8.89-1_all.deb ...
+Unpacking cuda-toolkit-11-config-common (11.8.89-1) over (11.7.99-1) ...
+Preparing to unpack .../cuda-toolkit-config-common_11.8.89-1_all.deb ...
+Unpacking cuda-toolkit-config-common (11.8.89-1) over (11.7.99-1) ...
+Preparing to unpack .../linux-libc-dev_5.4.0-126.142_amd64.deb ...
+Unpacking linux-libc-dev:amd64 (5.4.0-126.142) over (5.4.0-124.140) ...
+Setting up cuda-toolkit-config-common (11.8.89-1) ...
+Setting up cuda-toolkit-11-config-common (11.8.89-1) ...
+Setting up libsqlite3-0:amd64 (3.31.1-4ubuntu0.4) ...
+Setting up linux-libc-dev:amd64 (5.4.0-126.142) ...
+Processing triggers for libc-bin (2.31-0ubuntu9.9) ...
++ apt-get install -y wget grep python3-pip python3-dev
+Reading package lists...
+Building dependency tree...
+Reading state information...
+grep is already the newest version (3.4-1).
+The following additional packages will be installed:
+  file libexpat1 libexpat1-dev libmagic-mgc libmagic1 libmpdec2 libpsl5
+  libpython3-dev libpython3-stdlib libpython3.8 libpython3.8-dev
+  libpython3.8-minimal libpython3.8-stdlib mime-support publicsuffix
+  python-pip-whl python3 python3-distutils python3-lib2to3 python3-minimal
+  python3-pkg-resources python3-setuptools python3-wheel python3.8
+  python3.8-dev python3.8-minimal zlib1g-dev
+Suggested packages:
+  python3-doc python3-tk python3-venv python-setuptools-doc python3.8-venv
+  python3.8-doc binfmt-support
+The following NEW packages will be installed:
+  file libexpat1 libexpat1-dev libmagic-mgc libmagic1 libmpdec2 libpsl5
+  libpython3-dev libpython3-stdlib libpython3.8 libpython3.8-dev
+  libpython3.8-minimal libpython3.8-stdlib mime-support publicsuffix
+  python-pip-whl python3 python3-dev python3-distutils python3-lib2to3
+  python3-minimal python3-pip python3-pkg-resources python3-setuptools
+  python3-wheel python3.8 python3.8-dev python3.8-minimal wget zlib1g-dev
+0 upgraded, 30 newly installed, 0 to remove and 4 not upgraded.
+Need to get 14.9 MB of archives.
+After this operation, 63.1 MB of additional disk space will be used.
+Get:1 http://archive.ubuntu.com/ubuntu focal-updates/main amd64 libpython3.8-minimal amd64 3.8.10-0ubuntu1~20.04.5 [717 kB]
+Get:2 http://archive.ubuntu.com/ubuntu focal-updates/main amd64 libexpat1 amd64 2.2.9-1ubuntu0.4 [74.4 kB]
+Get:3 http://archive.ubuntu.com/ubuntu focal-updates/main amd64 python3.8-minimal amd64 3.8.10-0ubuntu1~20.04.5 [1905 kB]
+Get:4 http://archive.ubuntu.com/ubuntu focal/main amd64 python3-minimal amd64 3.8.2-0ubuntu2 [23.6 kB]
+Get:5 http://archive.ubuntu.com/ubuntu focal/main amd64 mime-support all 3.64ubuntu1 [30.6 kB]
+Get:6 http://archive.ubuntu.com/ubuntu focal/main amd64 libmpdec2 amd64 2.4.2-3 [81.1 kB]
+Get:7 http://archive.ubuntu.com/ubuntu focal-updates/main amd64 libpython3.8-stdlib amd64 3.8.10-0ubuntu1~20.04.5 [1675 kB]
+Get:8 http://archive.ubuntu.com/ubuntu focal-updates/main amd64 python3.8 amd64 3.8.10-0ubuntu1~20.04.5 [387 kB]
+Get:9 http://archive.ubuntu.com/ubuntu focal/main amd64 libpython3-stdlib amd64 3.8.2-0ubuntu2 [7068 B]
+Get:10 http://archive.ubuntu.com/ubuntu focal/main amd64 python3 amd64 3.8.2-0ubuntu2 [47.6 kB]
+Get:11 http://archive.ubuntu.com/ubuntu focal/main amd64 libmagic-mgc amd64 1:5.38-4 [218 kB]
+Get:12 http://archive.ubuntu.com/ubuntu focal/main amd64 libmagic1 amd64 1:5.38-4 [75.9 kB]
+Get:13 http://archive.ubuntu.com/ubuntu focal/main amd64 file amd64 1:5.38-4 [23.3 kB]
+Get:14 http://archive.ubuntu.com/ubuntu focal/main amd64 python3-pkg-resources all 45.2.0-1 [130 kB]
+Get:15 http://archive.ubuntu.com/ubuntu focal/main amd64 libpsl5 amd64 0.21.0-1ubuntu1 [51.5 kB]
+Get:16 http://archive.ubuntu.com/ubuntu focal/main amd64 publicsuffix all 20200303.0012-1 [111 kB]
+Get:17 http://archive.ubuntu.com/ubuntu focal-updates/main amd64 wget amd64 1.20.3-1ubuntu2 [348 kB]
+Get:18 http://archive.ubuntu.com/ubuntu focal-updates/main amd64 libexpat1-dev amd64 2.2.9-1ubuntu0.4 [117 kB]
+Get:19 http://archive.ubuntu.com/ubuntu focal-updates/main amd64 libpython3.8 amd64 3.8.10-0ubuntu1~20.04.5 [1625 kB]
+Get:20 http://archive.ubuntu.com/ubuntu focal-updates/main amd64 libpython3.8-dev amd64 3.8.10-0ubuntu1~20.04.5 [3951 kB]
+Get:21 http://archive.ubuntu.com/ubuntu focal/main amd64 libpython3-dev amd64 3.8.2-0ubuntu2 [7236 B]
+Get:22 http://archive.ubuntu.com/ubuntu focal-updates/universe amd64 python-pip-whl all 20.0.2-5ubuntu1.6 [1805 kB]
+Get:23 http://archive.ubuntu.com/ubuntu focal-updates/main amd64 zlib1g-dev amd64 1:1.2.11.dfsg-2ubuntu1.3 [155 kB]
+Get:24 http://archive.ubuntu.com/ubuntu focal-updates/main amd64 python3.8-dev amd64 3.8.10-0ubuntu1~20.04.5 [514 kB]
+Get:25 http://archive.ubuntu.com/ubuntu focal-updates/main amd64 python3-lib2to3 all 3.8.10-0ubuntu1~20.04 [76.3 kB]
+Get:26 http://archive.ubuntu.com/ubuntu focal-updates/main amd64 python3-distutils all 3.8.10-0ubuntu1~20.04 [141 kB]
+Get:27 http://archive.ubuntu.com/ubuntu focal/main amd64 python3-dev amd64 3.8.2-0ubuntu2 [1212 B]
+Get:28 http://archive.ubuntu.com/ubuntu focal/main amd64 python3-setuptools all 45.2.0-1 [330 kB]
+Get:29 http://archive.ubuntu.com/ubuntu focal/universe amd64 python3-wheel all 0.34.2-1 [23.8 kB]
+Get:30 http://archive.ubuntu.com/ubuntu focal-updates/universe amd64 python3-pip all 20.0.2-5ubuntu1.6 [231 kB]
+debconf: delaying package configuration, since apt-utils is not installed
+Fetched 14.9 MB in 9s (1737 kB/s)
+Selecting previously unselected package libpython3.8-minimal:amd64.
+(Reading database ... (Reading database ... 5%(Reading database ... 10%(Reading database ... 15%(Reading database ... 20%(Reading database ... 25%(Reading database ... 30%(Reading database ... 35%(Reading database ... 40%(Reading database ... 45%(Reading database ... 50%(Reading database ... 55%(Reading database ... 60%(Reading database ... 65%(Reading database ... 70%(Reading database ... 75%(Reading database ... 80%(Reading database ... 85%(Reading database ... 90%(Reading database ... 95%(Reading database ... 100%(Reading database ... 12877 files and directories currently installed.)
+Preparing to unpack .../libpython3.8-minimal_3.8.10-0ubuntu1~20.04.5_amd64.deb ...
+Unpacking libpython3.8-minimal:amd64 (3.8.10-0ubuntu1~20.04.5) ...
+Selecting previously unselected package libexpat1:amd64.
+Preparing to unpack .../libexpat1_2.2.9-1ubuntu0.4_amd64.deb ...
+Unpacking libexpat1:amd64 (2.2.9-1ubuntu0.4) ...
+Selecting previously unselected package python3.8-minimal.
+Preparing to unpack .../python3.8-minimal_3.8.10-0ubuntu1~20.04.5_amd64.deb ...
+Unpacking python3.8-minimal (3.8.10-0ubuntu1~20.04.5) ...
+Setting up libpython3.8-minimal:amd64 (3.8.10-0ubuntu1~20.04.5) ...
+Setting up libexpat1:amd64 (2.2.9-1ubuntu0.4) ...
+Setting up python3.8-minimal (3.8.10-0ubuntu1~20.04.5) ...
+Selecting previously unselected package python3-minimal.
+(Reading database ... (Reading database ... 5%(Reading database ... 10%(Reading database ... 15%(Reading database ... 20%(Reading database ... 25%(Reading database ... 30%(Reading database ... 35%(Reading database ... 40%(Reading database ... 45%(Reading database ... 50%(Reading database ... 55%(Reading database ... 60%(Reading database ... 65%(Reading database ... 70%(Reading database ... 75%(Reading database ... 80%(Reading database ... 85%(Reading database ... 90%(Reading database ... 95%(Reading database ... 100%(Reading database ... 13168 files and directories currently installed.)
+Preparing to unpack .../0-python3-minimal_3.8.2-0ubuntu2_amd64.deb ...
+Unpacking python3-minimal (3.8.2-0ubuntu2) ...
+Selecting previously unselected package mime-support.
+Preparing to unpack .../1-mime-support_3.64ubuntu1_all.deb ...
+Unpacking mime-support (3.64ubuntu1) ...
+Selecting previously unselected package libmpdec2:amd64.
+Preparing to unpack .../2-libmpdec2_2.4.2-3_amd64.deb ...
+Unpacking libmpdec2:amd64 (2.4.2-3) ...
+Selecting previously unselected package libpython3.8-stdlib:amd64.
+Preparing to unpack .../3-libpython3.8-stdlib_3.8.10-0ubuntu1~20.04.5_amd64.deb ...
+Unpacking libpython3.8-stdlib:amd64 (3.8.10-0ubuntu1~20.04.5) ...
+Selecting previously unselected package python3.8.
+Preparing to unpack .../4-python3.8_3.8.10-0ubuntu1~20.04.5_amd64.deb ...
+Unpacking python3.8 (3.8.10-0ubuntu1~20.04.5) ...
+Selecting previously unselected package libpython3-stdlib:amd64.
+Preparing to unpack .../5-libpython3-stdlib_3.8.2-0ubuntu2_amd64.deb ...
+Unpacking libpython3-stdlib:amd64 (3.8.2-0ubuntu2) ...
+Setting up python3-minimal (3.8.2-0ubuntu2) ...
+Selecting previously unselected package python3.
+(Reading database ... (Reading database ... 5%(Reading database ... 10%(Reading database ... 15%(Reading database ... 20%(Reading database ... 25%(Reading database ... 30%(Reading database ... 35%(Reading database ... 40%(Reading database ... 45%(Reading database ... 50%(Reading database ... 55%(Reading database ... 60%(Reading database ... 65%(Reading database ... 70%(Reading database ... 75%(Reading database ... 80%(Reading database ... 85%(Reading database ... 90%(Reading database ... 95%(Reading database ... 100%(Reading database ... 13570 files and directories currently installed.)
+Preparing to unpack .../00-python3_3.8.2-0ubuntu2_amd64.deb ...
+Unpacking python3 (3.8.2-0ubuntu2) ...
+Selecting previously unselected package libmagic-mgc.
+Preparing to unpack .../01-libmagic-mgc_1%3a5.38-4_amd64.deb ...
+Unpacking libmagic-mgc (1:5.38-4) ...
+Selecting previously unselected package libmagic1:amd64.
+Preparing to unpack .../02-libmagic1_1%3a5.38-4_amd64.deb ...
+Unpacking libmagic1:amd64 (1:5.38-4) ...
+Selecting previously unselected package file.
+Preparing to unpack .../03-file_1%3a5.38-4_amd64.deb ...
+Unpacking file (1:5.38-4) ...
+Selecting previously unselected package python3-pkg-resources.
+Preparing to unpack .../04-python3-pkg-resources_45.2.0-1_all.deb ...
+Unpacking python3-pkg-resources (45.2.0-1) ...
+Selecting previously unselected package libpsl5:amd64.
+Preparing to unpack .../05-libpsl5_0.21.0-1ubuntu1_amd64.deb ...
+Unpacking libpsl5:amd64 (0.21.0-1ubuntu1) ...
+Selecting previously unselected package publicsuffix.
+Preparing to unpack .../06-publicsuffix_20200303.0012-1_all.deb ...
+Unpacking publicsuffix (20200303.0012-1) ...
+Selecting previously unselected package wget.
+Preparing to unpack .../07-wget_1.20.3-1ubuntu2_amd64.deb ...
+Unpacking wget (1.20.3-1ubuntu2) ...
+Selecting previously unselected package libexpat1-dev:amd64.
+Preparing to unpack .../08-libexpat1-dev_2.2.9-1ubuntu0.4_amd64.deb ...
+Unpacking libexpat1-dev:amd64 (2.2.9-1ubuntu0.4) ...
+Selecting previously unselected package libpython3.8:amd64.
+Preparing to unpack .../09-libpython3.8_3.8.10-0ubuntu1~20.04.5_amd64.deb ...
+Unpacking libpython3.8:amd64 (3.8.10-0ubuntu1~20.04.5) ...
+Selecting previously unselected package libpython3.8-dev:amd64.
+Preparing to unpack .../10-libpython3.8-dev_3.8.10-0ubuntu1~20.04.5_amd64.deb ...
+Unpacking libpython3.8-dev:amd64 (3.8.10-0ubuntu1~20.04.5) ...
+Selecting previously unselected package libpython3-dev:amd64.
+Preparing to unpack .../11-libpython3-dev_3.8.2-0ubuntu2_amd64.deb ...
+Unpacking libpython3-dev:amd64 (3.8.2-0ubuntu2) ...
+Selecting previously unselected package python-pip-whl.
+Preparing to unpack .../12-python-pip-whl_20.0.2-5ubuntu1.6_all.deb ...
+Unpacking python-pip-whl (20.0.2-5ubuntu1.6) ...
+Selecting previously unselected package zlib1g-dev:amd64.
+Preparing to unpack .../13-zlib1g-dev_1%3a1.2.11.dfsg-2ubuntu1.3_amd64.deb ...
+Unpacking zlib1g-dev:amd64 (1:1.2.11.dfsg-2ubuntu1.3) ...
+Selecting previously unselected package python3.8-dev.
+Preparing to unpack .../14-python3.8-dev_3.8.10-0ubuntu1~20.04.5_amd64.deb ...
+Unpacking python3.8-dev (3.8.10-0ubuntu1~20.04.5) ...
+Selecting previously unselected package python3-lib2to3.
+Preparing to unpack .../15-python3-lib2to3_3.8.10-0ubuntu1~20.04_all.deb ...
+Unpacking python3-lib2to3 (3.8.10-0ubuntu1~20.04) ...
+Selecting previously unselected package python3-distutils.
+Preparing to unpack .../16-python3-distutils_3.8.10-0ubuntu1~20.04_all.deb ...
+Unpacking python3-distutils (3.8.10-0ubuntu1~20.04) ...
+Selecting previously unselected package python3-dev.
+Preparing to unpack .../17-python3-dev_3.8.2-0ubuntu2_amd64.deb ...
+Unpacking python3-dev (3.8.2-0ubuntu2) ...
+Selecting previously unselected package python3-setuptools.
+Preparing to unpack .../18-python3-setuptools_45.2.0-1_all.deb ...
+Unpacking python3-setuptools (45.2.0-1) ...
+Selecting previously unselected package python3-wheel.
+Preparing to unpack .../19-python3-wheel_0.34.2-1_all.deb ...
+Unpacking python3-wheel (0.34.2-1) ...
+Selecting previously unselected package python3-pip.
+Preparing to unpack .../20-python3-pip_20.0.2-5ubuntu1.6_all.deb ...
+Unpacking python3-pip (20.0.2-5ubuntu1.6) ...
+Setting up libpsl5:amd64 (0.21.0-1ubuntu1) ...
+Setting up mime-support (3.64ubuntu1) ...
+Setting up wget (1.20.3-1ubuntu2) ...
+Setting up libmagic-mgc (1:5.38-4) ...
+Setting up libmagic1:amd64 (1:5.38-4) ...
+Setting up file (1:5.38-4) ...
+Setting up libexpat1-dev:amd64 (2.2.9-1ubuntu0.4) ...
+Setting up zlib1g-dev:amd64 (1:1.2.11.dfsg-2ubuntu1.3) ...
+Setting up python-pip-whl (20.0.2-5ubuntu1.6) ...
+Setting up libmpdec2:amd64 (2.4.2-3) ...
+Setting up libpython3.8-stdlib:amd64 (3.8.10-0ubuntu1~20.04.5) ...
+Setting up python3.8 (3.8.10-0ubuntu1~20.04.5) ...
+Setting up publicsuffix (20200303.0012-1) ...
+Setting up libpython3-stdlib:amd64 (3.8.2-0ubuntu2) ...
+Setting up python3 (3.8.2-0ubuntu2) ...
+running python rtupdate hooks for python3.8...
+running python post-rtupdate hooks for python3.8...
+Setting up python3-wheel (0.34.2-1) ...
+Setting up libpython3.8:amd64 (3.8.10-0ubuntu1~20.04.5) ...
+Setting up python3-lib2to3 (3.8.10-0ubuntu1~20.04) ...
+Setting up python3-pkg-resources (45.2.0-1) ...
+Setting up python3-distutils (3.8.10-0ubuntu1~20.04) ...
+Setting up python3-setuptools (45.2.0-1) ...
+Setting up libpython3.8-dev:amd64 (3.8.10-0ubuntu1~20.04.5) ...
+Setting up python3-pip (20.0.2-5ubuntu1.6) ...
+Setting up python3.8-dev (3.8.10-0ubuntu1~20.04.5) ...
+Setting up libpython3-dev:amd64 (3.8.2-0ubuntu2) ...
+Setting up python3-dev (3.8.2-0ubuntu2) ...
+Processing triggers for libc-bin (2.31-0ubuntu9.9) ...
++ python3 -m pip install --no-cache-dir --upgrade pip
+Collecting pip
+  Downloading pip-22.2.2-py3-none-any.whl (2.0 MB)
+Installing collected packages: pip
+  Attempting uninstall: pip
+    Found existing installation: pip 20.0.2
+    Not uninstalling pip at /usr/lib/python3/dist-packages, outside environment /usr
+    Can't uninstall 'pip'. No files were found to uninstall.
+Successfully installed pip-22.2.2
++ python3 -m pip install --no-cache-dir -r /opt/gcae_requirements.txt
+Collecting docopt
+  Downloading docopt-0.6.2.tar.gz (25 kB)
+  Preparing metadata (setup.py): started
+  Preparing metadata (setup.py): finished with status 'done'
+Collecting grpcio
+  Downloading grpcio-1.49.1-cp38-cp38-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (4.7 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 4.7/4.7 MB 1.6 MB/s eta 0:00:00
+Collecting setuptools==47.1.1
+  Downloading setuptools-47.1.1-py3-none-any.whl (583 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 583.2/583.2 kB 1.6 MB/s eta 0:00:00
+Collecting tensorflow>=2.2.0
+  Downloading tensorflow-2.10.0-cp38-cp38-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (578.1 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 578.1/578.1 MB 1.7 MB/s eta 0:00:00
+Collecting numpy==1.18.4
+  Downloading numpy-1.18.4-cp38-cp38-manylinux1_x86_64.whl (20.7 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 20.7/20.7 MB 748.8 kB/s eta 0:00:00
+Collecting scikit-learn
+  Downloading scikit_learn-1.1.2-cp38-cp38-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (31.2 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 31.2/31.2 MB 2.1 MB/s eta 0:00:00
+Collecting matplotlib==3.2.1
+  Downloading matplotlib-3.2.1-cp38-cp38-manylinux1_x86_64.whl (12.4 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 12.4/12.4 MB 1.5 MB/s eta 0:00:00
+Collecting seaborn
+  Downloading seaborn-0.12.0-py3-none-any.whl (285 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 285.1/285.1 kB 2.3 MB/s eta 0:00:00
+Collecting scipy==1.4.1
+  Downloading scipy-1.4.1-cp38-cp38-manylinux1_x86_64.whl (26.0 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 26.0/26.0 MB 2.0 MB/s eta 0:00:00
+Collecting numba
+  Downloading numba-0.56.2-cp38-cp38-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (3.5 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 3.5/3.5 MB 2.0 MB/s eta 0:00:00
+Collecting pandas==1.0.4
+  Downloading pandas-1.0.4-cp38-cp38-manylinux1_x86_64.whl (10.0 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 10.0/10.0 MB 2.0 MB/s eta 0:00:00
+Collecting pandas-plink==2.0.4
+  Downloading pandas_plink-2.0.4-cp38-cp38-manylinux2010_x86_64.whl (88 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 88.9/88.9 kB 3.1 MB/s eta 0:00:00
+Collecting pyparsing!=2.0.4,!=2.1.2,!=2.1.6,>=2.0.1
+  Downloading pyparsing-3.0.9-py3-none-any.whl (98 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 98.3/98.3 kB 3.1 MB/s eta 0:00:00
+Collecting cycler>=0.10
+  Downloading cycler-0.11.0-py3-none-any.whl (6.4 kB)
+Collecting kiwisolver>=1.0.1
+  Downloading kiwisolver-1.4.4-cp38-cp38-manylinux_2_5_x86_64.manylinux1_x86_64.whl (1.2 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.2/1.2 MB 2.4 MB/s eta 0:00:00
+Collecting python-dateutil>=2.1
+  Downloading python_dateutil-2.8.2-py2.py3-none-any.whl (247 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 247.7/247.7 kB 2.3 MB/s eta 0:00:00
+Collecting pytz>=2017.2
+  Downloading pytz-2022.4-py2.py3-none-any.whl (500 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 500.8/500.8 kB 2.4 MB/s eta 0:00:00
+Collecting dask[array,dataframe]>=2.6.0
+  Downloading dask-2022.9.2-py3-none-any.whl (1.1 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.1/1.1 MB 2.3 MB/s eta 0:00:00
+Collecting zstandard>=0.12.0
+  Downloading zstandard-0.18.0-cp38-cp38-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (2.5 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 2.5/2.5 MB 2.3 MB/s eta 0:00:00
+Collecting xarray>=0.13.0
+  Downloading xarray-2022.9.0-py3-none-any.whl (943 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 943.1/943.1 kB 2.1 MB/s eta 0:00:00
+Collecting tqdm>=4.36.1
+  Downloading tqdm-4.64.1-py2.py3-none-any.whl (78 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 78.5/78.5 kB 2.7 MB/s eta 0:00:00
+Collecting pytest>=5.2.2
+  Downloading pytest-7.1.3-py3-none-any.whl (298 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 298.2/298.2 kB 2.1 MB/s eta 0:00:00
+Collecting Deprecated>=1.2.6
+  Downloading Deprecated-1.2.13-py2.py3-none-any.whl (9.6 kB)
+Collecting cffi>=1.13.1
+  Downloading cffi-1.15.1-cp38-cp38-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (442 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 442.7/442.7 kB 2.5 MB/s eta 0:00:00
+Collecting six>=1.5.2
+  Downloading six-1.16.0-py2.py3-none-any.whl (11 kB)
+Collecting flatbuffers>=2.0
+  Downloading flatbuffers-22.9.24-py2.py3-none-any.whl (26 kB)
+Collecting protobuf<3.20,>=3.9.2
+  Downloading protobuf-3.19.6-cp38-cp38-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (1.1 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.1/1.1 MB 1.2 MB/s eta 0:00:00
+Collecting termcolor>=1.1.0
+  Downloading termcolor-2.0.1-py3-none-any.whl (5.4 kB)
+Collecting h5py>=2.9.0
+  Downloading h5py-3.7.0-cp38-cp38-manylinux_2_12_x86_64.manylinux2010_x86_64.whl (4.5 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 4.5/4.5 MB 1.4 MB/s eta 0:00:00
+Collecting tensorflow-io-gcs-filesystem>=0.23.1
+  Downloading tensorflow_io_gcs_filesystem-0.27.0-cp38-cp38-manylinux_2_12_x86_64.manylinux2010_x86_64.whl (2.4 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 2.4/2.4 MB 1.8 MB/s eta 0:00:00
+Collecting tensorflow>=2.2.0
+  Downloading tensorflow-2.9.2-cp38-cp38-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (511.8 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 511.8/511.8 MB 2.7 MB/s eta 0:00:00
+Collecting tensorboard<2.10,>=2.9
+  Downloading tensorboard-2.9.1-py3-none-any.whl (5.8 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 5.8/5.8 MB 2.2 MB/s eta 0:00:00
+Collecting keras<2.10.0,>=2.9.0rc0
+  Downloading keras-2.9.0-py2.py3-none-any.whl (1.6 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.6/1.6 MB 1.5 MB/s eta 0:00:00
+Collecting tensorflow>=2.2.0
+  Downloading tensorflow-2.9.1-cp38-cp38-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (511.7 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 511.7/511.7 MB 1.6 MB/s eta 0:00:00
+  Downloading tensorflow-2.9.0-cp38-cp38-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (511.7 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 511.7/511.7 MB 1.8 MB/s eta 0:00:00
+Collecting protobuf>=3.9.2
+  Downloading protobuf-4.21.7-cp37-abi3-manylinux2014_x86_64.whl (408 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 408.4/408.4 kB 2.9 MB/s eta 0:00:00
+Collecting tensorflow>=2.2.0
+  Downloading tensorflow-2.8.3-cp38-cp38-manylinux2010_x86_64.whl (498.4 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 498.4/498.4 MB 1.5 MB/s eta 0:00:00
+Collecting absl-py>=0.4.0
+  Downloading absl_py-1.2.0-py3-none-any.whl (123 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 123.4/123.4 kB 72.0 MB/s eta 0:00:00
+Collecting tensorboard<2.9,>=2.8
+  Downloading tensorboard-2.8.0-py3-none-any.whl (5.8 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 5.8/5.8 MB 2.2 MB/s eta 0:00:00
+Collecting keras<2.9,>=2.8.0rc0
+  Downloading keras-2.8.0-py2.py3-none-any.whl (1.4 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.4/1.4 MB 5.8 MB/s eta 0:00:00
+Collecting tensorflow>=2.2.0
+  Downloading tensorflow-2.8.2-cp38-cp38-manylinux2010_x86_64.whl (498.0 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 498.0/498.0 MB 1.9 MB/s eta 0:00:00
+  Downloading tensorflow-2.8.1-cp38-cp38-manylinux2010_x86_64.whl (498.0 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 498.0/498.0 MB 1.8 MB/s eta 0:00:00
+  Downloading tensorflow-2.8.0-cp38-cp38-manylinux2010_x86_64.whl (497.6 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 497.6/497.6 MB 3.6 MB/s eta 0:00:00
+  Downloading tensorflow-2.7.4-cp38-cp38-manylinux2010_x86_64.whl (496.0 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 496.0/496.0 MB 2.8 MB/s eta 0:00:00
+Collecting gast<0.5.0,>=0.2.1
+  Downloading gast-0.4.0-py3-none-any.whl (9.8 kB)
+Requirement already satisfied: wheel<1.0,>=0.32.0 in /usr/lib/python3/dist-packages (from tensorflow>=2.2.0->-r /opt/gcae_requirements.txt (line 4)) (0.34.2)
+Collecting tensorflow-estimator<2.8,~=2.7.0rc0
+  Downloading tensorflow_estimator-2.7.0-py2.py3-none-any.whl (463 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 463.1/463.1 kB 2.8 MB/s eta 0:00:00
+Collecting flatbuffers<3.0,>=1.12
+  Downloading flatbuffers-2.0.7-py2.py3-none-any.whl (26 kB)
+Collecting keras<2.8,>=2.7.0rc0
+  Downloading keras-2.7.0-py2.py3-none-any.whl (1.3 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.3/1.3 MB 56.7 MB/s eta 0:00:00
+Collecting tensorboard~=2.6
+  Downloading tensorboard-2.10.1-py3-none-any.whl (5.9 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 5.9/5.9 MB 3.3 MB/s eta 0:00:00
+Collecting keras-preprocessing>=1.1.1
+  Downloading Keras_Preprocessing-1.1.2-py2.py3-none-any.whl (42 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 42.6/42.6 kB 18.8 MB/s eta 0:00:00
+Collecting wrapt>=1.11.0
+  Downloading wrapt-1.14.1-cp38-cp38-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl (81 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 81.0/81.0 kB 7.9 MB/s eta 0:00:00
+Collecting astunparse>=1.6.0
+  Downloading astunparse-1.6.3-py2.py3-none-any.whl (12 kB)
+Collecting opt-einsum>=2.3.2
+  Downloading opt_einsum-3.3.0-py3-none-any.whl (65 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 65.5/65.5 kB 29.0 MB/s eta 0:00:00
+Collecting google-pasta>=0.1.1
+  Downloading google_pasta-0.2.0-py3-none-any.whl (57 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 57.5/57.5 kB 82.4 MB/s eta 0:00:00
+Collecting libclang>=9.0.1
+  Downloading libclang-14.0.6-py2.py3-none-manylinux2010_x86_64.whl (14.1 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 14.1/14.1 MB 2.5 MB/s eta 0:00:00
+Collecting typing-extensions>=3.6.6
+  Downloading typing_extensions-4.3.0-py3-none-any.whl (25 kB)
+Collecting threadpoolctl>=2.0.0
+  Downloading threadpoolctl-3.1.0-py3-none-any.whl (14 kB)
+Collecting joblib>=1.0.0
+  Downloading joblib-1.2.0-py3-none-any.whl (297 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 298.0/298.0 kB 7.0 MB/s eta 0:00:00
+Collecting importlib-metadata
+  Downloading importlib_metadata-5.0.0-py3-none-any.whl (21 kB)
+Collecting llvmlite<0.40,>=0.39.0dev0
+  Downloading llvmlite-0.39.1-cp38-cp38-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (34.6 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 34.6/34.6 MB 2.6 MB/s eta 0:00:00
+Collecting pycparser
+  Downloading pycparser-2.21-py2.py3-none-any.whl (118 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 118.7/118.7 kB 3.8 MB/s eta 0:00:00
+Collecting partd>=0.3.10
+  Downloading partd-1.3.0-py3-none-any.whl (18 kB)
+Collecting toolz>=0.8.2
+  Downloading toolz-0.12.0-py3-none-any.whl (55 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 55.8/55.8 kB 4.4 MB/s eta 0:00:00
+Collecting cloudpickle>=1.1.1
+  Downloading cloudpickle-2.2.0-py3-none-any.whl (25 kB)
+Collecting pyyaml>=5.3.1
+  Downloading PyYAML-6.0-cp38-cp38-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_12_x86_64.manylinux2010_x86_64.whl (701 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 701.2/701.2 kB 2.9 MB/s eta 0:00:00
+Collecting fsspec>=0.6.0
+  Downloading fsspec-2022.8.2-py3-none-any.whl (140 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 140.8/140.8 kB 3.6 MB/s eta 0:00:00
+Collecting packaging>=20.0
+  Downloading packaging-21.3-py3-none-any.whl (40 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 40.8/40.8 kB 43.7 MB/s eta 0:00:00
+Collecting attrs>=19.2.0
+  Downloading attrs-22.1.0-py2.py3-none-any.whl (58 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 58.8/58.8 kB 88.1 MB/s eta 0:00:00
+Collecting pluggy<2.0,>=0.12
+  Downloading pluggy-1.0.0-py2.py3-none-any.whl (13 kB)
+Collecting tomli>=1.0.0
+  Downloading tomli-2.0.1-py3-none-any.whl (12 kB)
+Collecting iniconfig
+  Downloading iniconfig-1.1.1-py2.py3-none-any.whl (5.0 kB)
+Collecting py>=1.8.2
+  Downloading py-1.11.0-py2.py3-none-any.whl (98 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 98.7/98.7 kB 10.9 MB/s eta 0:00:00
+Collecting google-auth<3,>=1.6.3
+  Downloading google_auth-2.12.0-py2.py3-none-any.whl (169 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 169.8/169.8 kB 4.2 MB/s eta 0:00:00
+Collecting requests<3,>=2.21.0
+  Downloading requests-2.28.1-py3-none-any.whl (62 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 62.8/62.8 kB 9.2 MB/s eta 0:00:00
+Collecting google-auth-oauthlib<0.5,>=0.4.1
+  Downloading google_auth_oauthlib-0.4.6-py2.py3-none-any.whl (18 kB)
+Collecting tensorboard-data-server<0.7.0,>=0.6.0
+  Downloading tensorboard_data_server-0.6.1-py3-none-manylinux2010_x86_64.whl (4.9 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 4.9/4.9 MB 3.3 MB/s eta 0:00:00
+Collecting markdown>=2.6.8
+  Downloading Markdown-3.4.1-py3-none-any.whl (93 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 93.3/93.3 kB 73.3 MB/s eta 0:00:00
+Collecting tensorboard-plugin-wit>=1.6.0
+  Downloading tensorboard_plugin_wit-1.8.1-py3-none-any.whl (781 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 781.3/781.3 kB 3.5 MB/s eta 0:00:00
+Collecting werkzeug>=1.0.1
+  Downloading Werkzeug-2.2.2-py3-none-any.whl (232 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 232.7/232.7 kB 2.6 MB/s eta 0:00:00
+Collecting xarray>=0.13.0
+  Downloading xarray-2022.6.0-py3-none-any.whl (927 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 927.2/927.2 kB 2.8 MB/s eta 0:00:00
+  Downloading xarray-2022.3.0-py3-none-any.whl (870 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 870.9/870.9 kB 2.9 MB/s eta 0:00:00
+  Downloading xarray-0.21.1-py3-none-any.whl (865 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 865.3/865.3 kB 3.3 MB/s eta 0:00:00
+  Downloading xarray-0.21.0-py3-none-any.whl (865 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 865.2/865.2 kB 3.0 MB/s eta 0:00:00
+  Downloading xarray-0.20.2-py3-none-any.whl (845 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 845.2/845.2 kB 3.4 MB/s eta 0:00:00
+  Downloading xarray-0.20.1-py3-none-any.whl (835 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 835.7/835.7 kB 3.1 MB/s eta 0:00:00
+  Downloading xarray-0.20.0-py3-none-any.whl (835 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 835.7/835.7 kB 3.1 MB/s eta 0:00:00
+  Downloading xarray-0.19.0-py3-none-any.whl (827 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 827.5/827.5 kB 2.6 MB/s eta 0:00:00
+Collecting zipp>=0.5
+  Downloading zipp-3.8.1-py3-none-any.whl (5.6 kB)
+Collecting cachetools<6.0,>=2.0.0
+  Downloading cachetools-5.2.0-py3-none-any.whl (9.3 kB)
+Collecting pyasn1-modules>=0.2.1
+  Downloading pyasn1_modules-0.2.8-py2.py3-none-any.whl (155 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 155.3/155.3 kB 4.2 MB/s eta 0:00:00
+Collecting rsa<5,>=3.1.4
+  Downloading rsa-4.9-py3-none-any.whl (34 kB)
+Collecting requests-oauthlib>=0.7.0
+  Downloading requests_oauthlib-1.3.1-py2.py3-none-any.whl (23 kB)
+Collecting locket
+  Downloading locket-1.0.0-py2.py3-none-any.whl (4.4 kB)
+Collecting idna<4,>=2.5
+  Downloading idna-3.4-py3-none-any.whl (61 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 61.5/61.5 kB 14.4 MB/s eta 0:00:00
+Collecting urllib3<1.27,>=1.21.1
+  Downloading urllib3-1.26.12-py2.py3-none-any.whl (140 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 140.4/140.4 kB 4.3 MB/s eta 0:00:00
+Collecting certifi>=2017.4.17
+  Downloading certifi-2022.9.24-py3-none-any.whl (161 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 161.1/161.1 kB 4.4 MB/s eta 0:00:00
+Collecting charset-normalizer<3,>=2
+  Downloading charset_normalizer-2.1.1-py3-none-any.whl (39 kB)
+Collecting MarkupSafe>=2.1.1
+  Downloading MarkupSafe-2.1.1-cp38-cp38-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (25 kB)
+Collecting pyasn1<0.5.0,>=0.4.6
+  Downloading pyasn1-0.4.8-py2.py3-none-any.whl (77 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 77.1/77.1 kB 21.1 MB/s eta 0:00:00
+Collecting oauthlib>=3.0.0
+  Downloading oauthlib-3.2.1-py3-none-any.whl (151 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 151.7/151.7 kB 4.5 MB/s eta 0:00:00
+Building wheels for collected packages: docopt
+  Building wheel for docopt (setup.py): started
+  Building wheel for docopt (setup.py): finished with status 'done'
+  Created wheel for docopt: filename=docopt-0.6.2-py2.py3-none-any.whl size=13704 sha256=c505f84c5c6a859fcaacbbc914c173a92cea82c4573d978471dafc15c14db088
+  Stored in directory: /tmp/pip-ephem-wheel-cache-ig5i5mlx/wheels/56/ea/58/ead137b087d9e326852a851351d1debf4ada529b6ac0ec4e8c
+Successfully built docopt
+Installing collected packages: tensorflow-estimator, tensorboard-plugin-wit, pytz, pyasn1, libclang, keras, iniconfig, flatbuffers, docopt, zstandard, zipp, wrapt, urllib3, typing-extensions, tqdm, toolz, tomli, threadpoolctl, termcolor, tensorflow-io-gcs-filesystem, tensorboard-data-server, six, setuptools, rsa, pyyaml, pyparsing, pycparser, pyasn1-modules, py, protobuf, pluggy, oauthlib, numpy, MarkupSafe, locket, llvmlite, kiwisolver, joblib, idna, gast, fsspec, cycler, cloudpickle, charset-normalizer, certifi, cachetools, attrs, absl-py, werkzeug, scipy, requests, python-dateutil, partd, packaging, opt-einsum, keras-preprocessing, importlib-metadata, h5py, grpcio, google-pasta, google-auth, Deprecated, cffi, astunparse, scikit-learn, requests-oauthlib, pytest, pandas, numba, matplotlib, markdown, dask, xarray, seaborn, google-auth-oauthlib, tensorboard, pandas-plink, tensorflow
+  Attempting uninstall: setuptools
+    Found existing installation: setuptools 45.2.0
+    Uninstalling setuptools-45.2.0:
+      Successfully uninstalled setuptools-45.2.0
+Successfully installed Deprecated-1.2.13 MarkupSafe-2.1.1 absl-py-1.2.0 astunparse-1.6.3 attrs-22.1.0 cachetools-5.2.0 certifi-2022.9.24 cffi-1.15.1 charset-normalizer-2.1.1 cloudpickle-2.2.0 cycler-0.11.0 dask-2022.9.2 docopt-0.6.2 flatbuffers-2.0.7 fsspec-2022.8.2 gast-0.4.0 google-auth-2.12.0 google-auth-oauthlib-0.4.6 google-pasta-0.2.0 grpcio-1.49.1 h5py-3.7.0 idna-3.4 importlib-metadata-5.0.0 iniconfig-1.1.1 joblib-1.2.0 keras-2.7.0 keras-preprocessing-1.1.2 kiwisolver-1.4.4 libclang-14.0.6 llvmlite-0.39.1 locket-1.0.0 markdown-3.4.1 matplotlib-3.2.1 numba-0.56.2 numpy-1.18.4 oauthlib-3.2.1 opt-einsum-3.3.0 packaging-21.3 pandas-1.0.4 pandas-plink-2.0.4 partd-1.3.0 pluggy-1.0.0 protobuf-3.19.6 py-1.11.0 pyasn1-0.4.8 pyasn1-modules-0.2.8 pycparser-2.21 pyparsing-3.0.9 pytest-7.1.3 python-dateutil-2.8.2 pytz-2022.4 pyyaml-6.0 requests-2.28.1 requests-oauthlib-1.3.1 rsa-4.9 scikit-learn-1.1.2 scipy-1.4.1 seaborn-0.12.0 setuptools-47.1.1 six-1.16.0 tensorboard-2.10.1 tensorboard-data-server-0.6.1 tensorboard-plugin-wit-1.8.1 tensorflow-2.7.4 tensorflow-estimator-2.7.0 tensorflow-io-gcs-filesystem-0.27.0 termcolor-2.0.1 threadpoolctl-3.1.0 tomli-2.0.1 toolz-0.12.0 tqdm-4.64.1 typing-extensions-4.3.0 urllib3-1.26.12 werkzeug-2.2.2 wrapt-1.14.1 xarray-0.19.0 zipp-3.8.1 zstandard-0.18.0
+WARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager. It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv
+INFO:    Adding help info
+INFO:    Adding testscript
+INFO:    Running testscript
+Package                      Version
+---------------------------- ---------
+absl-py                      1.2.0
+astunparse                   1.6.3
+attrs                        22.1.0
+cachetools                   5.2.0
+certifi                      2022.9.24
+cffi                         1.15.1
+charset-normalizer           2.1.1
+cloudpickle                  2.2.0
+cycler                       0.11.0
+dask                         2022.9.2
+Deprecated                   1.2.13
+docopt                       0.6.2
+flatbuffers                  2.0.7
+fsspec                       2022.8.2
+gast                         0.4.0
+google-auth                  2.12.0
+google-auth-oauthlib         0.4.6
+google-pasta                 0.2.0
+grpcio                       1.49.1
+h5py                         3.7.0
+idna                         3.4
+importlib-metadata           5.0.0
+iniconfig                    1.1.1
+joblib                       1.2.0
+keras                        2.7.0
+Keras-Preprocessing          1.1.2
+kiwisolver                   1.4.4
+libclang                     14.0.6
+llvmlite                     0.39.1
+locket                       1.0.0
+Markdown                     3.4.1
+MarkupSafe                   2.1.1
+matplotlib                   3.2.1
+numba                        0.56.2
+numpy                        1.18.4
+oauthlib                     3.2.1
+opt-einsum                   3.3.0
+packaging                    21.3
+pandas                       1.0.4
+pandas-plink                 2.0.4
+partd                        1.3.0
+pip                          22.2.2
+pluggy                       1.0.0
+protobuf                     3.19.6
+py                           1.11.0
+pyasn1                       0.4.8
+pyasn1-modules               0.2.8
+pycparser                    2.21
+pyparsing                    3.0.9
+pytest                       7.1.3
+python-dateutil              2.8.2
+pytz                         2022.4
+PyYAML                       6.0
+requests                     2.28.1
+requests-oauthlib            1.3.1
+rsa                          4.9
+scikit-learn                 1.1.2
+scipy                        1.4.1
+seaborn                      0.12.0
+setuptools                   47.1.1
+six                          1.16.0
+tensorboard                  2.10.1
+tensorboard-data-server      0.6.1
+tensorboard-plugin-wit       1.8.1
+tensorflow                   2.7.4
+tensorflow-estimator         2.7.0
+tensorflow-io-gcs-filesystem 0.27.0
+termcolor                    2.0.1
+threadpoolctl                3.1.0
+tomli                        2.0.1
+toolz                        0.12.0
+tqdm                         4.64.1
+typing_extensions            4.3.0
+urllib3                      1.26.12
+Werkzeug                     2.2.2
+wheel                        0.34.2
+wrapt                        1.14.1
+xarray                       0.19.0
+zipp                         3.8.1
+zstandard                    0.18.0
+WARNING: There was an error checking the latest version of pip.
+INFO:    Creating SIF file...
+INFO:    Build complete: singularity.sif
