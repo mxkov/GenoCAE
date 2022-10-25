@@ -351,6 +351,71 @@ class data_generator_ae:
 		return input_data_train, targets, self.ind_pop_list_train_orig[self.sample_idx_train]
 
 
+class data_generator_pheno:
+	'''
+	Class to read and write phenotype data.
+	'''
+	# replaces old functions: readpheno(), generatepheno(), writephenos()
+
+	def __init__(self, filepath, pt_index=0, phenomodel_defined=True):
+		'''
+		:param filepath: path + filename of a .phe file
+		:param pt_index: index of the phenotype in the .phe file (zero for the first phenotype)
+		:param phenomodel_defined: whether a phenomodel is being used
+
+		'''
+		# !!! Make sure phenomodel_defined remains consistent throughout the use of the object.
+		self.filepath = filepath
+		self.pt_index = pt_index
+		self.phenomodel_defined = phenomodel_defined
+		self._read()
+
+	def _read(self):
+		'''
+		Simply reads phenodata from file self.filepath (stored as an attribute).
+
+		'''
+		if self.phenomodel_defined:
+			f = open(self.filepath, "rt")
+			lines = f.read().strip().split("\n")[1:]
+			f.close()
+			self.phenodata = {(line[0], line[1]) : float(line[self.pt_index + 2])
+							  for line in (full_line.strip().split() for full_line in lines)}
+		else:
+			self.phenodata = None
+
+	def generate(self, ind_pop_list):
+		'''
+		Gets phenodata for the individual IDs and population IDs given in ind_pop_list, combines with the IDs, returns the result (NOT stored as an attribute).
+
+		:param ind_pop_list: list of (individual id, population id)
+
+		'''
+		if self.phenodata is None:
+			return None
+		return tf.expand_dims(
+					tf.convert_to_tensor([self.phenodata.get((pop, ind), None)
+										  for ind, pop in ind_pop_list]),
+					axis=-1)
+
+
+def writephenos(outfile, ind_pop_list, phenos):
+	'''
+	Writes phenotype data (mostly predictions) to a file.
+	
+	:param outfile: path to the output file
+	:param ind_pop_list: list of (individual id, population id)
+	:param phenos: the phenotypes to write
+
+	'''
+	f = open(outfile, "wt")
+	output = ['PID\tIID\tvalue'] + ['{0}\t{1}\t{2}'.format(pop, ind, pheno)
+									for (ind, pop), pheno in zip(ind_pop_list, phenos)]
+	f.write('\n'.join(output))
+	f.close()
+
+
+
 def in_hull(p, hull):
 	"""
 	from https://stackoverflow.com/questions/16750618/whats-an-efficient-way-to-find-if-a-point-lies-in-the-convex-hull-of-a-point-cl
@@ -745,15 +810,17 @@ def get_coords_by_pop(filestart_fam, coords, pop_subset = None, ind_pop_list = [
 	return coords_by_pop
 
 
-def get_saved_epochs(train_directory):
+def get_saved_epochs(train_directory, weights_directory="weights"):
 	'''
 	Get an ordered list of the saved epochs in the given directory.
 
 	:param train_directory: directory where training data is stored
+	:param weights_directory: subdirectory of train_directory with weights of the model of interest
 	:return: int list of sorted epochs
 	'''
+	# NOTE: this disregards the 'min_valid.*' files. which might not be the best idea.
 	epochs = []
-	for i in os.listdir(train_directory+"/weights"):
+	for i in os.listdir(os.path.join(train_directory, weights_directory)):
 		start = i.split("/")[-1].split(".")[0]
 		try:
 			num = int(start)
