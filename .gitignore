@@ -1,0 +1,14 @@
+# Singularity containers (too big)
+*.sif
+
+# Python cache
+*__pycache__
+
+# Output dirs
+ae_out*
+
+# Logs
+runs/logs/
+
+# The sandbox
+x_misc/
