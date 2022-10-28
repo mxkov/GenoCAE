@@ -302,7 +302,8 @@ class Autoencoder(Model):
 		return x
 
 @tf.function
-def run_optimization(model, optimizer, loss_function, input, targets, phenomodel=None, phenotargets=None):
+def run_optimization(model, optimizer, loss_function, input, targets,
+                     phenomodel=None, phenotargets=None, pheno_loss_function=None):
 	'''
 	Run one step of optimization process based on the given data.
 
@@ -335,6 +336,11 @@ def run_optimization(model, optimizer, loss_function, input, targets, phenomodel
 			else:
 				grad.append(g1*(alpha_capped) + g2*(1.0-alpha_capped))
 		return grad, alpha
+	
+	if pheno_loss_function is None:
+		print("Warning: pheno loss function not specified, using default")
+		def pheno_loss_function(y_pred, y_true):
+			return tf.math.reduce_sum(tf.square(y_pred - y_true)) * 1e-2
 
 	allvars = model.trainable_variables + (phenomodel.trainable_variables if phenomodel is not None else [])
 
@@ -347,8 +353,7 @@ def run_optimization(model, optimizer, loss_function, input, targets, phenomodel
 	if phenomodel is not None:
 		with tf.GradientTape() as g2:
 			phenoutput, _ = phenomodel(encoded_data, is_training=True)
-			# TODO: encapsulate pheno loss in a proper loss function, compatible with projection
-			pheno_loss_value = tf.math.reduce_sum(tf.square(phenoutput - phenotargets)) * 1e-2
+			pheno_loss_value = pheno_loss_function(phenoutput, phenotargets)
 		phenogradients = g2.gradient(pheno_loss_value, allvars)
 		gradients, _ = combine_gradients(gradients, phenogradients)
 	else:
@@ -652,6 +657,10 @@ if __name__ == "__main__":
 
 				return loss_obj(y_pred = y_pred, y_true = y_true)
 
+		# TODO: perhaps enable customizable pheno loss function
+		def pheno_loss_func(y_pred, y_true):
+			return tf.math.reduce_sum(tf.square(y_pred - y_true)) * 1e-2
+
 
 	# defining some constants before responding to the 'app' arguments
 	ae_weights_dir = "weights"
@@ -686,7 +695,8 @@ if __name__ == "__main__":
 			resume_from = False
 
 		dg.define_validation_set(validation_split = validation_split)
-		input_valid, targets_valid, _  = dg.get_valid_set(0.0)
+		input_valid, targets_valid, ind_pop_list_valid  = dg.get_valid_set(0.0)
+		phenotargets_valid = dg_ph.generate(ind_pop_list_valid)
 
 		# if we do not have missing mask input, remeove that dimension/channel from the input that data generator returns
 		if not missing_mask_input:
@@ -769,8 +779,8 @@ if __name__ == "__main__":
 				print("Reading phenomodel weights from {0}".format(pheno_weights_file_prefix))
 
 			# get a single sample to run through optimization to reload weights and optimizer variables
-			input_init, targets_init, ind_pop_list = dg.get_train_batch(0.0, 1)
-			phenotargets_init = dg_ph.generate(ind_pop_list)
+			input_init, targets_init, ind_pop_list_init = dg.get_train_batch(0.0, 1)
+			phenotargets_init = dg_ph.generate(ind_pop_list_init)
 			dg.reset_batch_index()
 			if not missing_mask_input:
 				input_init = input_init[:,:,0, np.newaxis]
@@ -778,7 +788,8 @@ if __name__ == "__main__":
 			# This initializes the variables used by the optimizers,
 			# as well as any stateful metric variables
 			run_optimization(autoencoder, optimizer, loss_func, input_init, targets_init,
-							phenomodel=pheno_model, phenotargets=phenotargets_init)
+			                 phenomodel=pheno_model, phenotargets=phenotargets_init,
+			                 pheno_loss_function=pheno_loss_func)
 			autoencoder.load_weights(weights_file_prefix)
 			if pheno_model is not None:
 				pheno_model.load_weights(pheno_weights_file_prefix)
@@ -800,7 +811,9 @@ if __name__ == "__main__":
 
 		train_writer = tf.summary.create_file_writer(os.path.join(train_directory, 'train'))
 		valid_writer = tf.summary.create_file_writer(os.path.join(train_directory, 'valid'))
-		train_pheno_writer = tf.summary.create_file_writer(os.path.join(train_directory, 'train_pheno'))
+		if pheno_model is not None:
+			train_pheno_writer = tf.summary.create_file_writer(os.path.join(train_directory, 'train_pheno'))
+			valid_pheno_writer = tf.summary.create_file_writer(os.path.join(train_directory, 'valid_pheno'))
 
 		######################################################
 
@@ -808,12 +821,18 @@ if __name__ == "__main__":
 		losses_t = []
 		# valid losses per epoch
 		losses_v = []
-		# pheno train losses per epoch
-		pheno_losses_t = []
-		# TODO: enable pheno validation
-
+		# min loss stats
 		min_valid_loss = np.inf
 		min_valid_loss_epoch = None
+
+		if pheno_model is not None:
+			# pheno train losses per epoch
+			pheno_losses_t = []
+			# pheno valid losses per epoch
+			pheno_losses_v = []
+			# min loss stats
+			min_valid_pheno_loss = np.inf
+			min_valid_pheno_loss_epoch = None
 
 		for e in range(1,epochs+1):
 			startTime = datetime.now()
@@ -821,7 +840,9 @@ if __name__ == "__main__":
 			effective_epoch = e + resume_from
 			losses_t_batches = []
 			losses_v_batches = []
-			pheno_losses_t_batches = []
+			if pheno_model is not None:
+				pheno_losses_t_batches = []
+				pheno_losses_v_batches = []
 
 			for ii in range(n_train_batches):
 				step_counter += 1
@@ -834,18 +855,19 @@ if __name__ == "__main__":
 				# Generating batches
 				# last batch is probably not full
 				if ii == n_train_batches - 1:
-					batch_input, batch_target, ind_pop_list = dg.get_train_batch(sparsify_fraction, n_train_samples_last_batch)
+					batch_input, batch_target, batch_ind_pop_list = dg.get_train_batch(sparsify_fraction, n_train_samples_last_batch)
 				else:
-					batch_input, batch_target, ind_pop_list = dg.get_train_batch(sparsify_fraction, batch_size)
-				phenotargets = dg_ph.generate(ind_pop_list)
+					batch_input, batch_target, batch_ind_pop_list = dg.get_train_batch(sparsify_fraction, batch_size)
+				phenotargets = dg_ph.generate(batch_ind_pop_list)
 
 				# TODO temporary solution: should fix data generator so it doesnt bother with the mask if not needed
 				if not missing_mask_input:
 					batch_input = batch_input[:,:,0,np.newaxis]
 
 				train_batch_loss, train_batch_pheno_loss = run_optimization(autoencoder, optimizer,
-																loss_func, batch_input, batch_target,
-																phenomodel=pheno_model, phenotargets=phenotargets)
+				                                               loss_func, batch_input, batch_target,
+				                                               phenomodel=pheno_model, phenotargets=phenotargets,
+				                                               pheno_loss_function = pheno_loss_func)
 				losses_t_batches.append(train_batch_loss)
 				if pheno_model is not None:
 					pheno_losses_t_batches.append(train_batch_pheno_loss)
@@ -890,27 +912,47 @@ if __name__ == "__main__":
 					if jj == n_valid_batches - 1:
 						input_valid_batch = input_valid[start:]
 						targets_valid_batch = targets_valid[start:]
+						phenotargets_valid_batch = (phenotargets_valid[start:]
+						                            if phenotargets_valid is not None else None)
 					else:
 						input_valid_batch = input_valid[start:start+batch_size_valid]
 						targets_valid_batch = targets_valid[start:start+batch_size_valid]
+						phenotargets_valid_batch = (phenotargets_valid[start:start+batch_size_valid]
+						                            if phenotargets_valid is not None else None)
 
 					output_valid_batch, encoded_data_valid_batch = autoencoder(input_valid_batch, is_training = False)
-
 					valid_loss_batch = loss_func(y_pred = output_valid_batch, y_true = targets_valid_batch)
 					valid_loss_batch += sum(autoencoder.losses)
 					losses_v_batches.append(valid_loss_batch)
 
+					if pheno_model is not None:
+						phenoutput_valid_batch, _ = pheno_model(encoded_data_valid_batch, is_training = False)
+						valid_pheno_loss_batch = pheno_loss_func(y_pred = phenoutput_valid_batch,
+						                                         y_true = phenotargets_valid_batch)
+						pheno_losses_v_batches.append(valid_pheno_loss_batch)
+
 				valid_loss_this_epoch = np.average(losses_v_batches)
+				losses_v.append(valid_loss_this_epoch)
 				with valid_writer.as_default():
 					tf.summary.scalar('loss', valid_loss_this_epoch, step=step_counter)
 
-				losses_v.append(valid_loss_this_epoch)
+				if pheno_model is not None:
+					valid_pheno_loss_this_epoch = np.average(pheno_losses_v_batches)
+					pheno_losses_v.append(valid_pheno_loss_this_epoch)
+					with valid_pheno_writer.as_default():
+						tf.summary.scalar('pheno loss', valid_pheno_loss_this_epoch, step=step_counter)
+
 				valid_time = (datetime.now() - startTime).total_seconds()
 
 				if valid_loss_this_epoch <= min_valid_loss:
 					min_valid_loss = valid_loss_this_epoch
 					prev_min_val_loss_epoch = min_valid_loss_epoch
 					min_valid_loss_epoch = effective_epoch
+
+					if pheno_model is not None:
+						min_valid_pheno_loss = valid_pheno_loss_this_epoch
+						prev_min_val_pheno_loss_epoch = min_valid_pheno_loss_epoch
+						min_valid_pheno_loss_epoch = effective_epoch
 
 					if e > start_saving_from:
 						for dirname in (ae_weights_dir, pheno_weights_dir):
@@ -925,6 +967,11 @@ if __name__ == "__main__":
 				evals_since_min_valid_loss = effective_epoch - min_valid_loss_epoch
 				print("--- Valid loss: {:.4f}  time: {} min loss: {:.4f} epochs since: {}".format(
 										valid_loss_this_epoch, valid_time, min_valid_loss, evals_since_min_valid_loss))
+
+				if pheno_model is not None:
+					print("--- Valid pheno loss: {:.4f}  time: {} min loss: {:.4f} epochs since: {}".format(
+					      valid_pheno_loss_this_epoch, valid_time, min_valid_pheno_loss,
+					      effective_epoch - min_valid_pheno_loss_epoch))
 
 				if evals_since_min_valid_loss >= patience:
 					break
@@ -973,19 +1020,23 @@ if __name__ == "__main__":
 			outfilename = os.path.join(train_directory, "losses_from_train_t_pheno.csv")
 			epochs_t_combined, pheno_losses_t_combined = write_metric_per_epoch_to_csv(outfilename, pheno_losses_t, train_epochs)
 			fig, ax = plt.subplots()
-			plt.plot(epochs_t_combined, pheno_losses_t_combined, label="train pheno", c="green")
+			plt.plot(epochs_t_combined, pheno_losses_t_combined, label="train pheno", c="magenta")
+			# marking min valid autoencoder loss
 			if n_valid_samples > 0:
 				plt.axvline(min_valid_loss_epoch, color="black")
-				plt.text(min_valid_loss_epoch + 0.1, 0.5,'min valid loss at epoch {}'.format(int(min_valid_loss_epoch)),
-						 rotation=90,
-						 transform=ax.get_xaxis_text1_transform(0)[0])
+				plt.text(min_valid_loss_epoch + 0.1, 0.5,"min valid AE loss at epoch {}".format(int(min_valid_loss_epoch)),
+				         rotation=90,
+				         transform=ax.get_xaxis_text1_transform(0)[0])
+			# recording and plotting valid pheno losses
+			if n_valid_samples > 0:
+				outfilename = os.path.join(train_directory, "losses_from_train_v_pheno.csv")
+				epochs_v_combined, pheno_losses_v_combined = write_metric_per_epoch_to_csv(outfilename, pheno_losses_v, train_epochs)
+				plt.plot(epochs_v_combined, pheno_losses_v_combined, label="valid pheno", c="green")
 			plt.xlabel("Epoch")
 			plt.ylabel("Loss function value")
 			plt.legend()
 			plt.savefig(os.path.join(train_directory, "losses_from_train_pheno.png"), dpi=300)
 			plt.close()
-
-		# TODO: enable pheno validation & record+plot pheno valid losses
 
 		print("Done training. Wrote to {0}".format(train_directory))
 
