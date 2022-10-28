@@ -530,7 +530,8 @@ if __name__ == "__main__":
 		n_input_channels = 2
 
 	if not train_directory:
-		train_directory = os.path.join(trainedmodeldir, ".".join(("ae", model_id, train_opts_id, data_opts_id, data)))
+		phm_id = pheno_model_id if pheno_model_id is not None else "_"
+		train_directory = os.path.join(trainedmodeldir, ".".join(("ae", model_id, phm_id, train_opts_id, data_opts_id, data)))
 
 	if arguments["pdata"]:
 		pdata = arguments["pdata"]
