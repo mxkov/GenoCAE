@@ -440,11 +440,13 @@ if __name__ == "__main__":
 		train_directory = os.path.join(trainedmodeldir, trainedmodelname)
 
 		namesplit = trainedmodelname.split(".")
-		data_opts_id = namesplit[3]
-		train_opts_id = namesplit[2]
+		data_opts_id = namesplit[4]
+		train_opts_id = namesplit[3]
 		model_id = namesplit[1]
-		data = namesplit[4]
-		pheno_model_id = (namesplit + [None])[5]
+		data = namesplit[5]
+		pheno_model_id = namesplit[2]
+		if pheno_model_id == '_':
+			pheno_model_id = None
 
 	else:
 		data = arguments["data"]
@@ -773,10 +775,10 @@ if __name__ == "__main__":
 
 		if resume_from:
 			print("\n______________________________ Resuming training from epoch {0} ______________________________".format(resume_from))
-			weights_file_prefix = os.path.join(train_directory, ae_weights_dir, resume_from)
+			weights_file_prefix = os.path.join(train_directory, ae_weights_dir, str(resume_from))
 			print("Reading weights from {0}".format(weights_file_prefix))
 			if pheno_model is not None:
-				pheno_weights_file_prefix = os.path.join(train_directory, pheno_weights_dir, resume_from)
+				pheno_weights_file_prefix = os.path.join(train_directory, pheno_weights_dir, str(resume_from))
 				print("Reading phenomodel weights from {0}".format(pheno_weights_file_prefix))
 
 			# get a single sample to run through optimization to reload weights and optimizer variables
@@ -1092,10 +1094,10 @@ if __name__ == "__main__":
 
 		for epoch in epochs:
 			print("########################### epoch {0} ###########################".format(epoch))
-			weights_file_prefix = os.path.join(train_directory, ae_weights_dir, epoch)
+			weights_file_prefix = os.path.join(train_directory, ae_weights_dir, str(epoch))
 			print("Reading weights from {0}".format(weights_file_prefix))
 			if pheno_model is not None:
-				pheno_weights_file_prefix = os.path.join(train_directory, pheno_weights_dir, epoch)
+				pheno_weights_file_prefix = os.path.join(train_directory, pheno_weights_dir, str(epoch))
 				print("Reading phenomodel weights from {0}".format(pheno_weights_file_prefix))
 
 			input, targets, _= dg.get_train_batch(sparsify_fraction, 1)
