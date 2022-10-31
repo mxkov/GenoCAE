@@ -34,7 +34,7 @@ from docopt import docopt, DocoptExit
 import tensorflow as tf
 from tensorflow.keras import Model, layers
 from datetime import datetime
-from utils.data_handler import get_saved_epochs, get_projected_epochs, write_h5, read_h5, get_coords_by_pop, data_generator_ae, data_generator_pheno, writephenos, convex_hull_error, f1_score_kNN, plot_genotype_hist, to_genotypes_sigmoid_round, to_genotypes_invscale_round, GenotypeConcordance, get_pops_with_k, get_ind_pop_list_from_map, get_baseline_gc, write_metric_per_epoch_to_csv
+from utils.data_handler import get_saved_epochs, get_projected_epochs, write_h5, read_h5, get_coords_by_pop, data_generator_ae, data_generator_pheno, convex_hull_error, f1_score_kNN, plot_genotype_hist, to_genotypes_sigmoid_round, to_genotypes_invscale_round, GenotypeConcordance, get_pops_with_k, get_ind_pop_list_from_map, get_baseline_gc, write_metric_per_epoch_to_csv
 from utils.visualization import plot_coords_by_superpop, plot_clusters_by_superpop, plot_coords, plot_coords_by_pop, make_animation, write_f1_scores_to_csv
 import utils.visualization
 import utils.layers
@@ -1249,8 +1249,8 @@ if __name__ == "__main__":
 
 			write_h5(encoded_data_file, "{}_encoded_train".format(epoch), encoded_train)
 			if pheno_train is not None:
-				writephenos(os.path.join(results_directory, "pheno_e_{}.phe".format(epoch)),
-						    ind_pop_list_train, pheno_train)
+				dg_ph.write(os.path.join(results_directory, "pheno_e_{}.phe".format(epoch)),
+				            ind_pop_list_train, pheno_train, include_stored = True)
 
 		try:
 			plot_genotype_hist(np.array(genotypes_output),

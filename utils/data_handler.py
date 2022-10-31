@@ -355,7 +355,6 @@ class data_generator_pheno:
 	'''
 	Class to read and write phenotype data.
 	'''
-	# replaces old functions: readpheno(), generatepheno(), writephenos()
 
 	def __init__(self, filepath, pt_index=0, phenomodel_defined=True):
 		'''
@@ -398,21 +397,28 @@ class data_generator_pheno:
 										  for ind, pop in ind_pop_list]),
 					axis=-1)
 
-
-def writephenos(outfile, ind_pop_list, phenos):
-	'''
-	Writes phenotype data (mostly predictions) to a file.
+	def write(self, outfile, ind_pop_list, phenos, include_stored = False):
+		'''
+		Writes phenotype data (mostly predictions) supplied from the calling scope (!) to a file.
 	
-	:param outfile: path to the output file
-	:param ind_pop_list: list of (individual id, population id)
-	:param phenos: the phenotypes to write
+		:param outfile: path to the output file
+		:param ind_pop_list: list of (individual id, population id)
+		:param phenos: the phenotypes to write
+		:param include_stored: whether to include self.phenodata as an additional column (mostly used for targets)
 
-	'''
-	f = open(outfile, "wt")
-	output = ['PID\tIID\tvalue'] + ['{0}\t{1}\t{2}'.format(pop, ind, pheno)
-									for (ind, pop), pheno in zip(ind_pop_list, phenos)]
-	f.write('\n'.join(output))
-	f.close()
+		'''
+		if include_stored:
+			phenos_target = self.generate(ind_pop_list)
+			output = ['PID\tIID\tvalue\ttarget']
+			output += ['{0}\t{1}\t{2}\t{3}'.format(pop, ind, pheno, pheno_t[0])
+			           for (ind, pop), pheno, pheno_t in zip(ind_pop_list, phenos, phenos_target)]
+		else:
+			output = ['PID\tIID\tvalue']
+			output += ['{0}\t{1}\t{2}'.format(pop, ind, pheno)
+			           for (ind, pop), pheno in zip(ind_pop_list, phenos)]
+		f = open(outfile, "wt")
+		f.write('\n'.join(output))
+		f.close()
 
 
 
