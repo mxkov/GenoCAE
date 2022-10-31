@@ -10,3 +10,8 @@ singularity exec --nv singularity.sif python3 run_gcae.py train \
 --epochs 9999 --patience 300 --save_interval 50 \
 --pheno_model_id ph1
 
+singularity exec --nv singularity.sif python3 run_gcae.py project \
+--datadir data/HOpheno_249ind_1000snp/ --data HOpheno_249ind_1000snp \
+--model_id M1 --train_opts_id ex3 --data_opts_id b_0_4 \
+--superpops data/HO_superpopulations \
+--pheno_model_id ph1
