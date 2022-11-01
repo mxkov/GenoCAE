@@ -7,6 +7,8 @@
 # Output dirs
 ae_out*
 
+# Toy runscripts
+runs/run_localtest_*
 # Logs
 runs/logs/
 
