@@ -270,34 +270,32 @@ class Autoencoder(Model):
 
 	def injectms(self, verbose, x, layer_name, ms_tiled, ms_variable):
 		if verbose:
-				print("----- injecting marker-specific variable")
+			print("----- injecting marker-specific variable")
 
 		# if we need to reshape ms_variable before concatting it
 		if not self.n_markers == x.shape[1]:
-				d = int(math.ceil(float(self.n_markers) / int(x.shape[1])))
-				diff = d*int(x.shape[1]) - self.n_markers
-				ms_var = tf.reshape(tf.pad(ms_variable,[[0,0],[0,diff]]), (-1, x.shape[1],d))
-				# Tiling it to handle the batch dimension
-				ms_tiled = tf.tile(ms_var, (tf.shape(x)[0],1,1))
+			d = int(math.ceil(float(self.n_markers) / int(x.shape[1])))
+			diff = d*int(x.shape[1]) - self.n_markers
+			ms_var = tf.reshape(tf.pad(ms_variable,[[0,0],[0,diff]]), (-1, x.shape[1],d))
+			# Tiling it to handle the batch dimension
+			ms_tiled = tf.tile(ms_var, (tf.shape(x)[0],1,1))
 
 		else:
-				# Tiling it to handle the batch dimension
-				ms_tiled = tf.tile(ms_variable, (x.shape[0],1))
-				ms_tiled = tf.expand_dims(ms_tiled, 2)
+			# Tiling it to handle the batch dimension
+			ms_tiled = tf.tile(ms_variable, (x.shape[0],1))
+			ms_tiled = tf.expand_dims(ms_tiled, 2)
 
 		if "_sg" in layer_name:
-				if verbose:
-						print("----- stopping gradient for marker-specific variable")
-				ms_tiled = tf.stop_gradient(ms_tiled)
-
+			if verbose:
+				print("----- stopping gradient for marker-specific variable")
+			ms_tiled = tf.stop_gradient(ms_tiled)
 
 		if verbose:
-				print("ms var {}".format(ms_variable.shape))
-				print("ms tiled {}".format(ms_tiled.shape))
-				print("concatting: {0} {1}".format(x.shape, ms_tiled.shape))
+			print("ms var {}".format(ms_variable.shape))
+			print("ms tiled {}".format(ms_tiled.shape))
+			print("concatting: {0} {1}".format(x.shape, ms_tiled.shape))
 
 		x = tf.concat([x, ms_tiled], 2)
-
 
 		return x
 
@@ -392,10 +390,10 @@ def alfreqvector(y_pred):
 	else:
 		return tf.nn.softmax(y_pred)
 
-def save_model_weights(epoch, train_directory, weights_directory, model, prefix=""):
+def save_model_weights(epoch, train_dir, weights_dir, model, prefix=""):
 	if model is None:		# happens to phenomodel sometimes
 		return
-	weights_file_prefix = os.path.join(train_directory, weights_directory, "{}{}".format(prefix, epoch))
+	weights_file_prefix = os.path.join(train_dir, weights_dir, "{}{}".format(prefix, epoch))
 	startTime = datetime.now()
 	model.save_weights(weights_file_prefix, save_format ="tf")
 	save_time = (datetime.now() - startTime).total_seconds()
@@ -500,8 +498,8 @@ if __name__ == "__main__":
 	superpopulations_file = arguments['superpops']
 	if superpopulations_file and not os.path.isabs(os.path.dirname(superpopulations_file)):
 		superpopulations_file = os.path.join(GCAE_DIR,
-											 os.path.dirname(superpopulations_file),
-											 Path(superpopulations_file).name)
+		                                     os.path.dirname(superpopulations_file),
+		                                     Path(superpopulations_file).name)
 
 	norm_opts = data_opts["norm_opts"]
 	norm_mode = data_opts["norm_mode"]
@@ -533,7 +531,9 @@ if __name__ == "__main__":
 
 	if not train_directory:
 		phm_id = pheno_model_id if pheno_model_id is not None else "_"
-		train_directory = os.path.join(trainedmodeldir, ".".join(("ae", model_id, phm_id, train_opts_id, data_opts_id, data)))
+		train_directory = os.path.join(trainedmodeldir,
+		                               ".".join(("ae", model_id, phm_id,
+		                                         train_opts_id, data_opts_id, data)))
 
 	if arguments["pdata"]:
 		pdata = arguments["pdata"]
@@ -592,9 +592,9 @@ if __name__ == "__main__":
 
 	else:
 		dg = data_generator_ae(data_prefix,
-							   normalization_mode = norm_mode,
-							   normalization_options = norm_opts,
-							   impute_missing = fill_missing)
+		                       normalization_mode = norm_mode,
+		                       normalization_options = norm_opts,
+		                       impute_missing = fill_missing)
 		n_markers = copy.deepcopy(dg.n_markers)
 
 		try:
@@ -602,8 +602,8 @@ if __name__ == "__main__":
 		except:
 			phenotype_index = 0
 		dg_ph = data_generator_pheno(data_prefix + ".phe",
-									 pt_index = phenotype_index,
-									 phenomodel_defined = (pheno_model_architecture is not None))
+		                             pt_index = phenotype_index,
+		                             phenomodel_defined = (pheno_model_architecture is not None))
 
 
 		loss_def = train_opts["loss"]
@@ -755,7 +755,8 @@ if __name__ == "__main__":
 			lr_schedule = schedule_module(updated_lr, **schedule_args)
 
 			print("Using learning rate schedule {0}.{1} with {2}".format(train_opts["lr_scheme"]["module"],
-																		 train_opts["lr_scheme"]["class"], schedule_args))
+			                                                             train_opts["lr_scheme"]["class"],
+			                                                             schedule_args))
 		else:
 			lr_schedule = False
 
@@ -861,16 +862,18 @@ if __name__ == "__main__":
 					batch_input, batch_target, batch_ind_pop_list = dg.get_train_batch(sparsify_fraction, n_train_samples_last_batch)
 				else:
 					batch_input, batch_target, batch_ind_pop_list = dg.get_train_batch(sparsify_fraction, batch_size)
-				phenotargets = dg_ph.generate(batch_ind_pop_list)
+				phenotargets_batch = dg_ph.generate(batch_ind_pop_list)
 
 				# TODO temporary solution: should fix data generator so it doesnt bother with the mask if not needed
 				if not missing_mask_input:
 					batch_input = batch_input[:,:,0,np.newaxis]
 
-				train_batch_loss, train_batch_pheno_loss = run_optimization(autoencoder, optimizer,
-				                                               loss_func, batch_input, batch_target,
-				                                               phenomodel=pheno_model, phenotargets=phenotargets,
-				                                               pheno_loss_function = pheno_loss_func)
+				train_batch_loss, train_batch_pheno_loss = \
+					run_optimization(autoencoder, optimizer,
+					                 loss_func, batch_input, batch_target,
+					                 phenomodel=pheno_model,
+					                 phenotargets=phenotargets_batch,
+					                 pheno_loss_function = pheno_loss_func)
 				losses_t_batches.append(train_batch_loss)
 				if pheno_model is not None:
 					pheno_losses_t_batches.append(train_batch_pheno_loss)
@@ -929,7 +932,8 @@ if __name__ == "__main__":
 					losses_v_batches.append(valid_loss_batch)
 
 					if pheno_model is not None:
-						phenoutput_valid_batch, _ = pheno_model(encoded_data_valid_batch, is_training = False)
+						phenoutput_valid_batch, _ = pheno_model(encoded_data_valid_batch,
+						                                        is_training = False)
 						valid_pheno_loss_batch = pheno_loss_func(y_pred = phenoutput_valid_batch,
 						                                         y_true = phenotargets_valid_batch)
 						pheno_losses_v_batches.append(valid_pheno_loss_batch)
@@ -943,7 +947,8 @@ if __name__ == "__main__":
 					valid_pheno_loss_this_epoch = np.average(pheno_losses_v_batches)
 					pheno_losses_v.append(valid_pheno_loss_this_epoch)
 					with valid_pheno_writer.as_default():
-						tf.summary.scalar('pheno loss', valid_pheno_loss_this_epoch, step=step_counter)
+						tf.summary.scalar('pheno loss', valid_pheno_loss_this_epoch,
+						                  step=step_counter)
 
 				valid_time = (datetime.now() - startTime).total_seconds()
 
@@ -952,6 +957,8 @@ if __name__ == "__main__":
 					prev_min_val_loss_epoch = min_valid_loss_epoch
 					min_valid_loss_epoch = effective_epoch
 
+					# Recording phenoloss corresponding to min AE loss,
+					# NOT min phenoloss. This is likely temporary.
 					if pheno_model is not None:
 						min_valid_pheno_loss = valid_pheno_loss_this_epoch
 						prev_min_val_pheno_loss_epoch = min_valid_pheno_loss_epoch
@@ -959,13 +966,16 @@ if __name__ == "__main__":
 
 					if e > start_saving_from:
 						for dirname in (ae_weights_dir, pheno_weights_dir):
-							for f in glob.glob(os.path.join(train_directory, dirname,
-															"min_valid.{}.*".format(prev_min_val_loss_epoch))):
+							for f in glob.glob(os.path.join(train_directory, dirname, "min_valid.{}.*".format(prev_min_val_loss_epoch))):
 								os.remove(f)
+						# Again, saving phenomodel weights corresponding to min AE loss,
+						# NOT min phenoloss. For now.
 						save_model_weights(effective_epoch, train_directory,
-											ae_weights_dir, autoencoder, prefix = "min_valid.")
+						                   ae_weights_dir, autoencoder,
+						                   prefix = "min_valid.")
 						save_model_weights(effective_epoch, train_directory,
-											pheno_weights_dir, pheno_model, prefix = "min_valid.")
+						                   pheno_weights_dir, pheno_model,
+						                   prefix = "min_valid.")
 
 				evals_since_min_valid_loss = effective_epoch - min_valid_loss_epoch
 				print("--- Valid loss: {:.4f}  time: {} min loss: {:.4f} epochs since: {}".format(
@@ -980,14 +990,18 @@ if __name__ == "__main__":
 					break
 
 			if e % save_interval == 0 and e > start_saving_from :
-				save_model_weights(effective_epoch, train_directory, ae_weights_dir, autoencoder)
-				save_model_weights(effective_epoch, train_directory, pheno_weights_dir, pheno_model)
+				save_model_weights(effective_epoch, train_directory,
+				                   ae_weights_dir, autoencoder)
+				save_model_weights(effective_epoch, train_directory,
+				                   pheno_weights_dir, pheno_model)
 
 
 
 
-		save_model_weights(effective_epoch, train_directory, ae_weights_dir, autoencoder)
-		save_model_weights(effective_epoch, train_directory, pheno_weights_dir, pheno_model)
+		save_model_weights(effective_epoch, train_directory,
+		                   ae_weights_dir, autoencoder)
+		save_model_weights(effective_epoch, train_directory,
+		                   pheno_weights_dir, pheno_model)
 
 		outfilename = os.path.join(train_directory, "train_times.csv")
 		write_metric_per_epoch_to_csv(outfilename, train_times, train_epochs)
@@ -1021,20 +1035,28 @@ if __name__ == "__main__":
 			# recording and plotting train pheno losses
 			# (separate plot, bc different loss function)
 			outfilename = os.path.join(train_directory, "losses_from_train_t_pheno.csv")
-			epochs_t_combined, pheno_losses_t_combined = write_metric_per_epoch_to_csv(outfilename, pheno_losses_t, train_epochs)
+			epochs_t_combined, pheno_losses_t_combined = \
+				write_metric_per_epoch_to_csv(outfilename,
+				                              pheno_losses_t,
+				                              train_epochs)
 			fig, ax = plt.subplots()
-			plt.plot(epochs_t_combined, pheno_losses_t_combined, label="train pheno", c="magenta")
+			plt.plot(epochs_t_combined, pheno_losses_t_combined,
+			         label="train pheno", c="magenta")
 			# marking min valid autoencoder loss
 			if n_valid_samples > 0:
 				plt.axvline(min_valid_loss_epoch, color="black")
-				plt.text(min_valid_loss_epoch + 0.1, 0.5,"min valid AE loss at epoch {}".format(int(min_valid_loss_epoch)),
-				         rotation=90,
-				         transform=ax.get_xaxis_text1_transform(0)[0])
+				plt.text(min_valid_loss_epoch + 0.1, 0.5,
+				         "min valid AE loss at epoch {}".format(int(min_valid_loss_epoch)),
+				         rotation=90, transform=ax.get_xaxis_text1_transform(0)[0])
 			# recording and plotting valid pheno losses
 			if n_valid_samples > 0:
 				outfilename = os.path.join(train_directory, "losses_from_train_v_pheno.csv")
-				epochs_v_combined, pheno_losses_v_combined = write_metric_per_epoch_to_csv(outfilename, pheno_losses_v, train_epochs)
-				plt.plot(epochs_v_combined, pheno_losses_v_combined, label="valid pheno", c="green")
+				epochs_v_combined, pheno_losses_v_combined = \
+					write_metric_per_epoch_to_csv(outfilename,
+					                              pheno_losses_v,
+					                              train_epochs)
+				plt.plot(epochs_v_combined, pheno_losses_v_combined,
+				         label="valid pheno", c="green")
 			plt.xlabel("Epoch")
 			plt.ylabel("Loss function value")
 			plt.legend()
@@ -1211,8 +1233,7 @@ if __name__ == "__main__":
 				genotype_concordance_metric.update_state(y_pred = genotypes_output[orig_nonmissing_mask], y_true = true_genotypes[orig_nonmissing_mask])
 
 			else:
-				print("Could not calculate predicted genotypes and genotype concordance. Not implemented for loss {0} and normalization {1}.".format(train_opts["loss"]["class"],
-																																					data_opts["norm_mode"]))
+				print("Could not calculate predicted genotypes and genotype concordance. Not implemented for loss {0} and normalization {1}.".format(train_opts["loss"]["class"], data_opts["norm_mode"]))
 				genotypes_output = np.array([])
 				true_genotypes = np.array([])
 
@@ -1226,13 +1247,17 @@ if __name__ == "__main__":
 
 				if doing_clustering:
 					plot_clusters_by_superpop(coords_by_pop,
-											  os.path.join(results_directory, "clusters_e_{}".format(epoch)),
-											  superpopulations_file, write_legend = epoch == epochs[0])
+					                          os.path.join(results_directory,
+					                                       "clusters_e_{}".format(epoch)),
+					                          superpopulations_file,
+					                          write_legend = epoch == epochs[0])
 				else:
 					scatter_points, colors, markers, edgecolors = \
 						plot_coords_by_superpop(coords_by_pop,
-												os.path.join(results_directory, "dimred_e_{}_by_superpop".format(epoch)),
-												superpopulations_file, plot_legend = epoch == epochs[0])
+						                        os.path.join(results_directory,
+						                                     "dimred_e_{}_by_superpop".format(epoch)),
+						                        superpopulations_file,
+						                        plot_legend = epoch == epochs[0])
 
 					scatter_points_per_epoch.append(scatter_points)
 					colors_per_epoch.append(colors)
@@ -1242,9 +1267,13 @@ if __name__ == "__main__":
 			else:
 				try:
 					coords_by_pop = get_coords_by_pop(data_prefix, encoded_train, ind_pop_list = ind_pop_list_train)
-					plot_coords_by_pop(coords_by_pop, os.path.join(results_directory, "dimred_e_{}_by_pop".format(epoch)))
+					plot_coords_by_pop(coords_by_pop,
+					                   os.path.join(results_directory,
+					                                "dimred_e_{}_by_pop".format(epoch)))
 				except:
-					plot_coords(encoded_train, os.path.join(results_directory, "dimred_e_{}".format(epoch)))
+					plot_coords(encoded_train,
+					            os.path.join(results_directory,
+					                         "dimred_e_{}".format(epoch)))
 
 
 			write_h5(encoded_data_file, "{}_encoded_train".format(epoch), encoded_train)
@@ -1254,9 +1283,10 @@ if __name__ == "__main__":
 
 		try:
 			plot_genotype_hist(np.array(genotypes_output),
-							   os.path.join(results_directory, "output_as_genotypes_e{}".format(epoch)))
+			                   os.path.join(results_directory,
+			                                "output_as_genotypes_e{}".format(epoch)))
 			plot_genotype_hist(np.array(true_genotypes),
-							   os.path.join(results_directory, "true_genotypes"))
+			                   os.path.join(results_directory, "true_genotypes"))
 		except:
 			pass
 
@@ -1335,8 +1365,9 @@ if __name__ == "__main__":
 			edgecolors_per_epoch.append(edgecolors)
 
 		make_animation(epochs, scatter_points_per_epoch, colors_per_epoch,
-					   markers_per_epoch, edgecolors_per_epoch,
-					   os.path.join(results_directory, "{0}{1}".format("dimred_animation", suffix)))
+		               markers_per_epoch, edgecolors_per_epoch,
+		               os.path.join(results_directory,
+		                            "{0}{1}".format("dimred_animation", suffix)))
 
 	if arguments['evaluate']:
 
@@ -1480,20 +1511,26 @@ if __name__ == "__main__":
 
 				if doing_clustering:
 					plot_clusters_by_superpop(coords_by_pop,
-											  os.path.join(results_directory, "clusters_e_{}".format(epoch)),
-											  superpopulations_file, write_legend = epoch == epochs[0])
+					                          os.path.join(results_directory,
+					                                       "clusters_e_{}".format(epoch)),
+					                          superpopulations_file,
+					                          write_legend = epoch == epochs[0])
 				else:
 					scatter_points, colors, markers, edgecolors = \
 						plot_coords_by_superpop(coords_by_pop,
-												os.path.join(results_directory, "dimred_e_{}_by_superpop".format(epoch)),
-												superpopulations_file, plot_legend = epoch == epochs[0])
+						                        os.path.join(results_directory,
+						                                     "dimred_e_{}_by_superpop".format(epoch)),
+						                        superpopulations_file,
+						                        plot_legend = epoch == epochs[0])
 
 			else:
 				try:
 					plot_coords_by_pop(coords_by_pop,
-									   os.path.join(results_directory, "dimred_e_{}_by_pop".format(epoch)))
+					                   os.path.join(results_directory,
+					                                "dimred_e_{}_by_pop".format(epoch)))
 				except:
 					plot_coords(encoded_train,
-								os.path.join(results_directory, "dimred_e_{}".format(epoch)))
+					            os.path.join(results_directory,
+					                         "dimred_e_{}".format(epoch)))
 
 

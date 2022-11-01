@@ -379,7 +379,7 @@ class data_generator_pheno:
 			lines = f.read().strip().split("\n")[1:]
 			f.close()
 			self.phenodata = {(line[0], line[1]) : float(line[self.pt_index + 2])
-							  for line in (full_line.strip().split() for full_line in lines)}
+			                  for line in (full_line.strip().split() for full_line in lines)}
 		else:
 			self.phenodata = None
 
@@ -393,9 +393,9 @@ class data_generator_pheno:
 		if self.phenodata is None:
 			return None
 		return tf.expand_dims(
-					tf.convert_to_tensor([self.phenodata.get((pop, ind), None)
-										  for ind, pop in ind_pop_list]),
-					axis=-1)
+		           tf.convert_to_tensor([self.phenodata.get((pop, ind), None)
+		                                 for ind, pop in ind_pop_list]),
+		           axis=-1)
 
 	def write(self, outfile, ind_pop_list, phenos, include_stored = False):
 		'''
