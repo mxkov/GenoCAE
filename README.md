@@ -4,6 +4,34 @@ Convolutional autoencoder for genotype data, as described in [1]
 
 An interactive version of the dimensionality reduction visualization from the paper can be found [here](https://www.kristiinaausmees.com/interactivevis).
 
+## Table of Contents
+
+- [GenoCAE](#genocae)
+  - [Installation](#installation)
+    - [Manual Installation](#manual-installation)
+    - [Docker Installation](#docker-installation)
+    - [Singularity Installation](#singularity-installation)
+  - [CLI](#cli)
+  - [Setup training](#setup-training)
+    - [data](#data)
+    - [data options](#data-options)
+      - [normalization methods](#normalization-methods)
+    - [model](#model)
+    - [train options](#train-options)
+    - [phenomodel](#phenomodel)
+    - [On saving model state](#on-saving-model-state)
+  - [Examples](#examples)
+    - [Training](#training)
+      - [Training with phenotypes](#training-with-phenotypes)
+    - [Projecting](#projecting)
+      - [Projecting with phenotypes](#projecting-with-phenotypes)
+    - [Plotting](#plotting)
+    - [Animating](#animating)
+    - [Evaluating](#evaluating)
+    - [Example results](#example-results)
+  - [Getting started](#getting-started)
+  - [References](#references)
+
 ## Installation
 
 ### Manual Installation
@@ -19,7 +47,6 @@ pip3
 
 #### Install Python packages:
 
-
     $ cd GenoCAE/
     $ pip3 install -r requirements.txt
 
@@ -27,21 +54,33 @@ pip3
 
 #### Build Docker image
 
-``` Shell
-docker build -t gcae/genocae:build -f docker/build.dockerfile .
+```
+$ docker build -t gcae/genocae:build -f docker/build.dockerfile .
 ```
 
 #### CLI
 
 ```
 $ docker run -it --rm -v ${PWD}:/workspace gcae/genocae:build python3 run_gcae.py --help
-
 ```
 
 If you have a Docker with GPU support.
 ```
 $ docker run -it  --gpus=all --rm -v ${PWD}:/workspace gcae/genocae:build python3 run_gcae.py --help
+```
 
+### Singularity Installation
+
+#### Build Singularity image
+
+```
+$ ./build_singularity.sh
+```
+
+#### CLI
+
+```
+$ singularity exec --nv singularity.sif python3 run_gcae.py --help
 ```
 
 ## CLI
@@ -55,30 +94,32 @@ The training and evaluation of models is wrapped by a command-line interface (CL
     GenoCAE.
 
     Usage:
-      run_gcae.py train --datadir=<name> --data=<name> --model_id=<name> --train_opts_id=<name> --data_opts_id=<name> --epochs=<num> [--resume_from=<num> --trainedmodeldir=<name> --patience=<num> --save_interval=<num> --start_saving_from=<num> ]
-      run_gcae.py project --datadir=<name>   [ --data=<name> --model_id=<name>  --train_opts_id=<name> --data_opts_id=<name> --superpops=<name> --epoch=<num> --trainedmodeldir=<name>   --pdata=<name> --trainedmodelname=<name>]
-      run_gcae.py plot --datadir=<name> [  --data=<name>  --model_id=<name> --train_opts_id=<name> --data_opts_id=<name>  --superpops=<name> --epoch=<num> --trainedmodeldir=<name>  --pdata=<name> --trainedmodelname=<name>]
-      run_gcae.py animate --datadir=<name>   [ --data=<name>   --model_id=<name> --train_opts_id=<name> --data_opts_id=<name>  --superpops=<name> --epoch=<num> --trainedmodeldir=<name> --pdata=<name> --trainedmodelname=<name>]
-      run_gcae.py evaluate --datadir=<name> --metrics=<name>  [  --data=<name>  --model_id=<name> --train_opts_id=<name> --data_opts_id=<name>  --superpops=<name> --epoch=<num> --trainedmodeldir=<name>  --pdata=<name> --trainedmodelname=<name>]
+      run_gcae.py train --datadir=<name> --data=<name> --model_id=<name> --train_opts_id=<name> --data_opts_id=<name> --epochs=<num> [--resume_from=<num> --trainedmodeldir=<name> --patience=<num> --save_interval=<num> --start_saving_from=<num> --pheno_model_id=<name> --phenotype_index=<num>]
+      run_gcae.py project --datadir=<name>   [ --data=<name> --model_id=<name>  --train_opts_id=<name> --data_opts_id=<name> --superpops=<name> --epoch=<num> --trainedmodeldir=<name>   --pdata=<name> --trainedmodelname=<name> --pheno_model_id=<name> --phenotype_index=<num>]
+      run_gcae.py plot --datadir=<name> [  --data=<name>  --model_id=<name> --train_opts_id=<name> --data_opts_id=<name>  --superpops=<name> --epoch=<num> --trainedmodeldir=<name>  --pdata=<name> --trainedmodelname=<name> --pheno_model_id=<name> --phenotype_index=<num>]
+      run_gcae.py animate --datadir=<name>   [ --data=<name>   --model_id=<name> --train_opts_id=<name> --data_opts_id=<name>  --superpops=<name> --epoch=<num> --trainedmodeldir=<name> --pdata=<name> --trainedmodelname=<name> --pheno_model_id=<name> --phenotype_index=<num>]
+      run_gcae.py evaluate --datadir=<name> --metrics=<name>  [  --data=<name>  --model_id=<name> --train_opts_id=<name> --data_opts_id=<name>  --superpops=<name> --epoch=<num> --trainedmodeldir=<name>  --pdata=<name> --trainedmodelname=<name> --pheno_model_id=<name> --phenotype_index=<num>]
 
     Options:
-      -h --help             show this screen
-      --datadir=<name>      directory where sample data is stored. if not absolute: assumed relative to GenoCAE/ directory. DEFAULT: data/
-      --data=<name>         file prefix, not including path, of the data files (EIGENSTRAT of PLINK format)
-      --trainedmodeldir=<name>     base path where to save model training directories. if not absolute: assumed relative to GenoCAE/ directory. DEFAULT: ae_out/
-      --model_id=<name>     model id, corresponding to a file models/model_id.json
-      --train_opts_id=<name>train options id, corresponding to a file train_opts/train_opts_id.json
-      --data_opts_id=<name> data options id, corresponding to a file data_opts/data_opts_id.json
-      --epochs<num>         number of epochs to train
-      --resume_from<num>	saved epoch to resume training from. set to -1 for latest saved epoch. DEFAULT: None (don't resume)
-      --save_interval<num>	epoch intervals at which to save state of model. DEFAULT: None (don't save)
-      --start_saving_from<num>	number of epochs to train before starting to save model state. DEFAULT: 0.
-      --trainedmodelname=<name> name of the model training directory to fetch saved model state from when project/plot/evaluating
-      --pdata=<name>     	file prefix, not including path, of data to project/plot/evaluate. if not specified, assumed to be the same the model was trained on.
-      --epoch<num>          epoch at which to project/plot/evaluate data. DEFAULT: all saved epochs
-      --superpops<name>     path+filename of file mapping populations to superpopulations. used to color populations of the same superpopulation in similar colors in plotting. if not absolute path: assumed relative to GenoCAE/ directory.
-      --metrics=<name>      the metric(s) to evaluate, e.g. hull_error of f1 score. can pass a list with multiple metrics, e.g. "f1_score_3,f1_score_5". DEFAULT: f1_score_3
-      --patience=<num>	 	stop training after this number of epochs without improving lowest validation. DEFAULT: None
+      -h --help                  show this screen
+      --datadir=<name>           directory where sample data is stored. if not absolute: assumed relative to GenoCAE/ directory. DEFAULT: data/
+      --data=<name>              file prefix, not including path, of the data files (EIGENSTRAT of PLINK format)
+      --trainedmodeldir=<name>   base path where to save model training directories. if not absolute: assumed relative to GenoCAE/ directory. DEFAULT: ae_out/
+      --model_id=<name>          model id, corresponding to a file models/{model_id}.json
+      --train_opts_id=<name>     train options id, corresponding to a file train_opts/{train_opts_id}.json
+      --data_opts_id=<name>      data options id, corresponding to a file data_opts/{data_opts_id}.json
+      --epochs<num>              number of epochs to train
+      --resume_from<num>	     saved epoch to resume training from. set to -1 for latest saved epoch. DEFAULT: None (don't resume)
+      --save_interval<num>	     epoch intervals at which to save state of model. DEFAULT: None (don't save)
+      --start_saving_from<num>	 number of epochs to train before starting to save model state. DEFAULT: 0.
+      --trainedmodelname=<name>  name of the model training directory to fetch saved model state from when project/plot/evaluating
+      --pdata=<name>     	     file prefix, not including path, of data to project/plot/evaluate. if not specified, assumed to be the same the model was trained on.
+      --epoch<num>               epoch at which to project/plot/evaluate data. DEFAULT: all saved epochs
+      --superpops<name>          path+filename of file mapping populations to superpopulations. used to color populations of the same superpopulation in similar colors in plotting. if not absolute path: assumed relative to GenoCAE/ directory.
+      --metrics=<name>           the metric(s) to evaluate, e.g. hull_error of f1 score. can pass a list with multiple metrics, e.g. "f1_score_3,f1_score_5". DEFAULT: f1_score_3
+      --patience=<num>	 	     stop training after this number of epochs without improving lowest validation. DEFAULT: None
+      --pheno_model_id=<name>    phenotype model id, e.g. "p1", corresponding to a file models/{pheno_model_id}.json
+      --phenotype_index=<num>    number of the phenotype of interest in file {data}.phe, 0 for the first phenotype after the ID columns. DEFAULT: 0.
 
 The main commands are:
 
@@ -104,6 +145,8 @@ Setup requires defining the following (using the CLI options):
 3. model
 4. training options
 
+In addition, training a phenotype prediction model alongside the autoencoder requires defining the phenomodel (see below).
+
 ### data
 
 Defines the actual samples and genotype data to use. Passed to the CLI with option **--data**
@@ -114,7 +157,9 @@ Accepted data formats are
 * PLINK (bed/bim/fam). Details [here](https://www.cog-genomics.org/plink/1.9/input#bed)
 
 
-A small example data set **HumanOrigins249_tiny** is in  [example_tiny/](example_tiny/) with 249 samples and 9259 SNPs. This can be used for local testing.
+A small example data set **HumanOrigins249_tiny** is in [data/example_tiny/](data/example_tiny/) with 249 samples and 9259 SNPs. This can be used for local testing.
+
+The [data/](data/) directory also contains more small datasets derived from **HumanOrigins249_tiny**, including some with phenotype data (.phe files); see the [phenomodel](#phenomodel) section.
 
 ### data options
 
@@ -298,7 +343,15 @@ optional:
 
 > normalization mode is specified in the data_opts file
 
+### phenomodel
 
+The two optional arguments, **--pheno_model_id** and **--phenotype_index**, enable phenotype prediction functionality. When used with the **train** command, the autoencoder is jointly trained with another model that learns to predict a real-valued phenotype from the encoded representation; both models share the encoder.
+
+**--pheno_model_id** defines the architecture of the phenotype prediction model. Like with **--model_id**, it specifies a json file in [models/](models/).
+
+The target phenotypes are read from file ```{datadir}/{data}.phe```, where **--datadir** and **--data** are CLI options. In other words, the phenotype file is assumed to have the same prefix as the rest of the data.
+
+**--phenotype_index** specifies the number of the phenotype column of interest in the phenotype file, in case it contains multiple phenotype columns. The first two columns in the file are assumed to be population ID and individual ID, whereas phenotype columns start from column 3, and **phenotype_index** is assumed relative to that column, starting from 0. For example, if **phenotype_index = 0** (default), then target phenotypes are read from column 3 of the phenotype file.
 
 ### On saving model state
 
@@ -321,10 +374,13 @@ The training procedure saves the current state of the model in the directory wei
 Command to train a model on the example data :
 
     $ cd GenoCAE/
-    $ python3 run_gcae.py train --datadir example_tiny/ --data HumanOrigins249_tiny --model_id M1  --epochs 20 --save_interval 2  --train_opts_id ex3  --data_opts_id b_0_4
+    $ python3 run_gcae.py train --datadir data/example_tiny/\
+      --data HumanOrigins249_tiny --model_id M1 \
+      --epochs 20 --save_interval 2 \
+      --train_opts_id ex3 --data_opts_id b_0_4
 
 
-This creates a model training directory: **ae_out/ae.M1.ex3.b_0_4.HumanOrigins249_tiny/** with subdirectories
+This creates a model training directory: **ae_out/ae.M1._.ex3.b_0_4.HumanOrigins249_tiny/** with subdirectories
 * train/: tensorboard statistics for the train set
 * valid/: tensorboard statistics for the valid set
 * weights/: files containing saved model states
@@ -333,6 +389,7 @@ The following files are also created:
 * train_times.csv: time in seconds to train each epoch
 * losses_from_train_t.csv: loss function value on the training set per epoch
 * losses_from_train_v.csv: loss function value on the validation set per epoch
+* losses_from_train.png: loss function values on both training and validation sets plotted against epochs
 
 
 You can [install tensorboard](https://pypi.org/project/tensorboard/) to use their suite of web tools for inspecting TensorFlow runs.
@@ -340,20 +397,43 @@ You can [install tensorboard](https://pypi.org/project/tensorboard/) to use thei
 
 Tensorboard can be started using:
 
-    $ tensorboard --logdir ae_out/ae.M1.ex3.b_0_4.HumanOrigins249_tiny/
+    $ tensorboard --logdir ae_out/ae.M1._.ex3.b_0_4.HumanOrigins249_tiny/
 
 it will be displayed on localhost:6006 in the browser
+
+#### Training with phenotypes
+
+    $ cd GenoCAE/
+    $ python3 run_gcae.py train --datadir data/HOpheno_249ind_1000snp/ \
+      --data HOpheno_249ind_1000snp --model_id M1 \
+      --epochs 20 --save_interval 2 \
+      --train_opts_id ex3 --data_opts_id b_0_4 \
+      --pheno_model_id ph1
+
+This creates a model training directory **ae_out/ae.M1.ph1.ex3.b_0_4.HOpheno_249ind_1000snp/** with the same files and subdirectories as above, as well as a few additional ones.
+Additional subdirectories:
+* train_pheno/: tensorboard statistics for the train set with phenotypes
+* valid_pheno/: tensorboard statistics for the valid set with phenotypes
+* weights_pheno/: files containing saved phenomodel states
+
+Additional files:
+* losses_from_train_t_pheno.csv: loss function value on the training set per epoch for the phenomodel
+* losses_from_train_v_pheno.csv: loss function value on the validation set per epoch for the phenomodel
+* losses_from_train_pheno.png: phenomodel loss function values on both training and validation sets plotted against epochs
 
 
 ### Projecting
 
-The saved model weights in a model training directory are used to reload the model at each epoch, and project a given data set (= calcaulate the encoding / latent representation). The entire given data set is projected, no validation set is defined.
+The saved model weights in a model training directory are used to reload the model at each epoch, and project a given data set (= calculate the encoding / latent representation). The entire given data set is projected, no validation set is defined.
 
 > The data set to project is specified using the **pdata** argument. If not specified, the same set as was used for training is assumed.
 
 
     $ cd GenoCAE/
-    $ python3 run_gcae.py project --datadir example_tiny/ --data HumanOrigins249_tiny --model_id M1 --train_opts_id ex3  --data_opts_id b_0_4 --superpops example_tiny/HO_superpopulations
+    $ python3 run_gcae.py project --datadir data/example_tiny/ \
+      --data HumanOrigins249_tiny --model_id M1 \
+      --train_opts_id ex3 --data_opts_id b_0_4 \
+      --superpops data/example_tiny/HO_superpopulations
 
 This creates a directory named after the projected data containing:
 
@@ -364,12 +444,25 @@ This creates a directory named after the projected data containing:
 5. a plot **true_genotypes.pdf** showing a histogram of the true (input) genotypes that the model is trained on
 6. a plot **output_as_genotypes.pdf** showing a histogram of the model output interpreted as genotypes, for the last epoch
 
+#### Projecting with phenotypes
 
-> When projecting/plotting/evaluating: the location to look for a trained model can either be specified with the same options given to the train commamd (model_id, data_opts_id, etc.) OR by giving the entire directory name with the --trainedmodelname argument.
+    $ cd GenoCAE/
+    $ python3 run_gcae.py project --datadir data/HOpheno_249ind_1000snp/ \
+      --data HOpheno_249ind_1000snp --model_id M1 \
+      --train_opts_id ex3 --data_opts_id b_0_4 \
+      --superpops data/HOpheno_249ind_1000snp/HO_superpopulations \
+      --pheno_model_id ph1
+
+This likewise creates a directory named after the projected data with all the files mentioned above; in addition, for every saved epoch there is a tab-delimited file **pheno_e_{epoch}.phe** containing population IDs, individual IDs, predicted phenotypes and target phenotypes for every sample.
+
+
+> When projecting/plotting/evaluating: the location to look for a trained model can either be specified with the same options given to the train command (model_id, data_opts_id, etc.) OR by giving the entire directory name with the --trainedmodelname argument:
 > e.g.
 
     $ cd GenoCAE/
-    $ python3 run_gcae.py project --datadir example_tiny/  --trainedmodelname ae.M1.ex3.b_0_4.HumanOrigins249_tiny --superpops example_tiny/HO_superpopulations
+    $ python3 run_gcae.py project --datadir data/example_tiny/ \
+      --trainedmodelname ae.M1._.ex3.b_0_4.HumanOrigins249_tiny \
+      --superpops data/example_tiny/HO_superpopulations
 
 
 ### Plotting
@@ -377,7 +470,9 @@ This creates a directory named after the projected data containing:
 The encoded data per epoch that is stored in the file **encoded_data.h5** created by the project command is plotted (generating the same plots as the project command).
 
     $ cd GenoCAE/
-    $ python3 run_gcae.py plot --datadir example_tiny/ --trainedmodelname ae.M1.ex3.b_0_4.HumanOrigins249_tiny --superpops example_tiny/HO_superpopulations
+    $ python3 run_gcae.py plot --datadir data/example_tiny/ \
+      --trainedmodelname ae.M1._.ex3.b_0_4.HumanOrigins249_tiny \
+      --superpops data/example_tiny/HO_superpopulations
 
 
 ### Animating
@@ -385,7 +480,9 @@ The encoded data per epoch that is stored in the file **encoded_data.h5** create
 An animation visualizing the dimensionality reduction over the saved epochs **encoded_data.h5** is created.
 
     $ cd GenoCAE/
-    $ python3 run_gcae.py animate --datadir example_tiny/ --trainedmodelname ae.M1.ex3.b_0_4.HumanOrigins249_tiny --superpops example_tiny/HO_superpopulations
+    $ python3 run_gcae.py animate --datadir data/example_tiny/ \
+      --trainedmodelname ae.M1._.ex3.b_0_4.HumanOrigins249_tiny \
+      --superpops data/example_tiny/HO_superpopulations
 
 
 ### Evaluating
@@ -395,7 +492,9 @@ are passed using the --metrics option. Currently implemented metrics are hull_er
 clusters populations.
 
     $ cd GenoCAE/
-    $ python3 run_gcae.py evaluate --metrics "hull_error,f1_score_3" --datadir example_tiny/ --trainedmodelname ae.M1.ex3.b_0_4.HumanOrigins249_tiny  --superpops example_tiny/HO_superpopulations
+    $ python3 run_gcae.py evaluate --metrics "hull_error,f1_score_3" --datadir data/example_tiny/ \
+      --trainedmodelname ae.M1._.ex3.b_0_4.HumanOrigins249_tiny \
+      --superpops data/example_tiny/HO_superpopulations
 
 
 For each metric, a csv and pdf plot of the metric (averaged over all populations) per epoch is created.
