@@ -67,8 +67,8 @@ def plot_coords(coords, outfileprefix, savefig = True):
 
 
 	if savefig:
-		plt.savefig(outfileprefix + ".pdf", bbox_inches="tight")
-		print("saving plot to " + outfileprefix + ".pdf")
+		plt.savefig(outfileprefix + ".png", bbox_inches="tight", dpi=300)
+		print("saving plot to " + outfileprefix + ".png")
 	plt.close()
 
 	return scatter_points, colors, markers, edgecolors
@@ -141,8 +141,8 @@ def plot_coords_by_pop(pop_coords_dict, outfileprefix, savefig=True):
 
 	if savefig:
 		plt.legend(fontsize=6)
-		plt.savefig(outfileprefix + ".pdf", bbox_inches="tight")
-		print("saving plot to " + outfileprefix + ".pdf")
+		plt.savefig(outfileprefix + ".png", bbox_inches="tight", dpi=300)
+		print("saving plot to " + outfileprefix + ".png")
 	plt.close()
 
 	return scatter_points, colors, markers, edgecolors
@@ -277,7 +277,8 @@ def plot_coords_by_superpop(pop_coords_dict, outfileprefix, pop_superpop_file, s
 
 
 	if plot_legend:
-		plt.savefig("{0}_legends.pdf".format(outfileprefix), bbox_inches="tight")
+		plt.savefig("{0}_legends.png".format(outfileprefix),
+		            bbox_inches="tight", dpi=300)
 	plt.close()
 
 
@@ -330,8 +331,8 @@ def plot_coords_by_superpop(pop_coords_dict, outfileprefix, pop_superpop_file, s
 						bottom = 0.06)
 
 	if savefig:
-		plt.savefig(outfileprefix + ".pdf")
-		print("saving plot to " + outfileprefix + ".pdf")
+		plt.savefig(outfileprefix + ".png", dpi=300)
+		print("saving plot to " + outfileprefix + ".png")
 	plt.close()
 
 	return scatter_points, colors, markers, edgecolors
@@ -451,8 +452,8 @@ def plot_clusters_by_superpop(pop_coords_dict, outfileprefix, pop_superpop_file,
 						hspace = 0.3)
 
 	if savefig:
-		plt.savefig(outfileprefix + ".pdf")
-		print("saving plot to " + outfileprefix + ".pdf")
+		plt.savefig(outfileprefix + ".png", dpi=300)
+		print("saving plot to " + outfileprefix + ".png")
 	plt.close()
 
 def make_animation(epochs, scatter_points_per_epoch, colors_per_epoch, markers_per_epoch, edgecolors_per_epoch, file):
