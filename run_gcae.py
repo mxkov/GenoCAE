@@ -1094,18 +1094,20 @@ if __name__ == "__main__":
 
 		n_unique_train_samples = copy.deepcopy(dg.n_train_samples)
 
-		# loss function of the train set per epoch
-		losses_train = []
-
-		# genotype concordance of the train set per epoch
-		genotype_concs_train = []
-
 		autoencoder = Autoencoder(model_architecture, n_markers, noise_std, regularizer)
 		if pheno_model_architecture is not None:
 			pheno_model = Autoencoder(pheno_model_architecture, 2, noise_std, regularizer)
 		else:
 			pheno_model = None
 		optimizer = tf.optimizers.Adam(learning_rate = learning_rate)
+
+		# loss function of the train set per epoch
+		losses_train = []
+		# phenomodel loss function of the train set per epoch
+		if pheno_model is not None:
+			pheno_losses_train = []
+		# genotype concordance of the train set per epoch
+		genotype_concs_train = []
 
 		genotype_concordance_metric = GenotypeConcordance()
 
@@ -1144,9 +1146,12 @@ if __name__ == "__main__":
 				encoded_train = np.empty((0, n_latent_dim))
 				decoded_train = None
 				targets_train = np.empty((0, n_markers))
-				pheno_train = None
+				phenoutput_train = None
+				phenotargets_train = None
 
 				loss_value_per_train_batch = []
+				if pheno_model is not None:
+					pheno_loss_value_per_train_batch = []
 				genotype_conc_per_train_batch = []
 
 				for b in range(n_train_batches):
@@ -1155,6 +1160,7 @@ if __name__ == "__main__":
 						input_train_batch, targets_train_batch, ind_pop_list_train_batch = dg.get_train_batch(sparsify_fraction, n_train_samples_last_batch)
 					else:
 						input_train_batch, targets_train_batch, ind_pop_list_train_batch = dg.get_train_batch(sparsify_fraction, batch_size_project)
+					phenotargets_train_batch = dg_ph.generate(ind_pop_list_train_batch)
 
 					if not missing_mask_input:
 						input_train_batch = input_train_batch[:,:,0, np.newaxis]
@@ -1162,6 +1168,7 @@ if __name__ == "__main__":
 					decoded_train_batch, encoded_train_batch = autoencoder(input_train_batch, is_training = False)
 					loss_train_batch = loss_func(y_pred = decoded_train_batch, y_true = targets_train_batch)
 					loss_train_batch += sum(autoencoder.losses)
+					loss_value_per_train_batch.append(loss_train_batch)
 
 					ind_pop_list_train = np.concatenate((ind_pop_list_train, ind_pop_list_train_batch), axis=0)
 					encoded_train = np.concatenate((encoded_train, encoded_train_batch), axis=0)
@@ -1172,17 +1179,28 @@ if __name__ == "__main__":
 					targets_train = np.concatenate((targets_train, targets_train_batch[:,0:n_markers]), axis=0)
 
 					if pheno_model is not None:
-						pheno_train_batch = pheno_model(encoded_train_batch)[0][:,0]
-						if pheno_train is None:
-							pheno_train = np.copy(pheno_train_batch)
-						else:
-							pheno_train = np.concatenate((pheno_train, pheno_train_batch), axis=0)
+						phenoutput_train_batch = pheno_model(encoded_train_batch)[0][:,0]
+						pheno_loss_train_batch = pheno_loss_func(y_pred = phenoutput_train_batch,
+						                                         y_true = phenotargets_train_batch)
+						pheno_loss_value_per_train_batch.append(pheno_loss_train_batch)
 
-					loss_value_per_train_batch.append(loss_train_batch)
+						if phenoutput_train is None:
+							phenoutput_train = np.copy(phenoutput_train_batch)
+						else:
+							phenoutput_train = np.concatenate((phenoutput_train,
+							                                   phenoutput_train_batch), axis=0)
+						if phenotargets_train is None:
+							phenotargets_train = np.copy(phenotargets_train_batch)
+						else:
+							phenotargets_train = np.concatenate((phenotargets_train,
+							                                     phenotargets_train_batch), axis=0)
+
 
 				ind_pop_list_train = np.array(ind_pop_list_train)
 				encoded_train = np.array(encoded_train)
 				loss_value = np.average(loss_value_per_train_batch)
+				if pheno_model is not None:
+					pheno_loss_value = np.average(pheno_loss_value_per_train_batch)
 
 				if epoch == epochs[0]:
 					assert len(ind_pop_list_train) == dg.n_train_samples, "{0} vs {1}".format(len(ind_pop_list_train), dg.n_train_samples)
@@ -1191,16 +1209,20 @@ if __name__ == "__main__":
 					assert list(ind_pop_list_train[:,1]) == list(ind_pop_list_train_reference[:,1])
 			else:
 				input_train, targets_train, ind_pop_list_train = dg.get_train_set(sparsify_fraction)
+				phenotargets_train = dg_ph.generate(ind_pop_list_train)
 
 				if not missing_mask_input:
 					input_train = input_train[:,:,0, np.newaxis]
 
 				decoded_train, encoded_train = autoencoder(input_train, is_training = False)
-				if pheno_model is not None:
-					pheno_train = pheno_model(encoded_train)[0]
-
 				loss_value = loss_func(y_pred = decoded_train, y_true = targets_train)
 				loss_value += sum(autoencoder.losses)
+
+				if pheno_model is not None:
+					phenoutput_train = pheno_model(encoded_train)[0]
+					pheno_loss_value = pheno_loss_func(y_pred = phenoutput_train,
+					                                   y_true = phenotargets_train)
+
 
 			genotype_concordance_metric.reset_states()
 
@@ -1241,6 +1263,8 @@ if __name__ == "__main__":
 			genotype_concordance_value = genotype_concordance_metric.result()
 
 			losses_train.append(loss_value)
+			if pheno_model is not None:
+				pheno_losses_train.append(pheno_loss_value)
 			genotype_concs_train.append(genotype_concordance_value)
 
 			if superpopulations_file:
@@ -1278,9 +1302,9 @@ if __name__ == "__main__":
 
 
 			write_h5(encoded_data_file, "{}_encoded_train".format(epoch), encoded_train)
-			if pheno_train is not None:
+			if phenoutput_train is not None:
 				dg_ph.write(os.path.join(results_directory, "pheno_e_{}.phe".format(epoch)),
-				            ind_pop_list_train, pheno_train, include_stored = True)
+				            ind_pop_list_train, phenoutput_train, include_stored = True)
 
 		try:
 			plot_genotype_hist(np.array(genotypes_output),
@@ -1293,19 +1317,34 @@ if __name__ == "__main__":
 
 		############################### losses ##############################
 
+		## Autoencoder losses
+
 		outfilename = os.path.join(results_directory, "losses_from_project.csv")
 		epochs_combined, losses_train_combined = write_metric_per_epoch_to_csv(outfilename, losses_train, epochs)
 
-
 		plt.plot(epochs_combined, losses_train_combined,
-				 label="all data",
-				 c="red")
-
+		         label="all data", c="red")
 		plt.xlabel("Epoch")
 		plt.ylabel("Loss function value")
 		plt.legend()
 		plt.savefig(os.path.join(results_directory, "losses_from_project.png"), dpi=300)
 		plt.close()
+
+		## Phenomodel losses
+
+		if pheno_model is not None:
+
+			outfilename = os.path.join(results_directory, "losses_from_project_pheno.csv")
+			epochs_combined, pheno_losses_train_combined = \
+				write_metric_per_epoch_to_csv(outfilename, pheno_losses_train, epochs)
+
+			plt.plot(epochs_combined, pheno_losses_train_combined,
+			         label="all pheno data", c="cyan")
+			plt.xlabel("Epoch")
+			plt.ylabel("Loss function value")
+			plt.legend()
+			plt.savefig(os.path.join(results_directory, "losses_from_project_pheno.png"), dpi=300)
+			plt.close()
 
 
 		############################### gconc ###############################
