@@ -1339,7 +1339,7 @@ if __name__ == "__main__":
 				write_metric_per_epoch_to_csv(outfilename, pheno_losses_train, epochs)
 
 			plt.plot(epochs_combined, pheno_losses_train_combined,
-			         label="all pheno data", c="cyan")
+			         label="all pheno data", c="blue")
 			plt.xlabel("Epoch")
 			plt.ylabel("Loss function value")
 			plt.legend()
