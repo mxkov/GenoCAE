@@ -1130,7 +1130,8 @@ if __name__ == "__main__":
 			# as well as any stateful metric variables
 			# run_optimization(autoencoder, optimizer, loss_func, input, targets)
 			autoencoder.load_weights(weights_file_prefix)
-			pheno_model.load_weights(pheno_weights_file_prefix)
+			if pheno_model is not None:
+				pheno_model.load_weights(pheno_weights_file_prefix)
 
 			if batch_size_project:
 				dg.reset_batch_index()
