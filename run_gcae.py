@@ -343,13 +343,14 @@ def run_optimization(model, optimizer, loss_function, input, targets,
 	allvars = model.trainable_variables + (phenomodel.trainable_variables if phenomodel is not None else [])
 
 	with tf.GradientTape() as g:
-		output, encoded_data = model(input, is_training=True)
+		output, _ = model(input, is_training=True)
 		loss_value = loss_function(y_pred = output, y_true = targets)
 		loss_value += sum(model.losses)
 	gradients = g.gradient(loss_value, allvars)
 
 	if phenomodel is not None:
 		with tf.GradientTape() as g2:
+			_, encoded_data = model(input, is_training=True)
 			phenoutput, _ = phenomodel(encoded_data, is_training=True)
 			pheno_loss_value = pheno_loss_function(phenoutput, phenotargets)
 		phenogradients = g2.gradient(pheno_loss_value, allvars)
