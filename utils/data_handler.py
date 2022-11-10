@@ -383,19 +383,22 @@ class data_generator_pheno:
 		else:
 			self.phenodata = None
 
-	def generate(self, ind_pop_list):
+	def generate(self, ind_pop_list = None):
 		'''
 		Gets phenodata for the individual IDs and population IDs given in ind_pop_list, combines with the IDs, returns the result (NOT stored as an attribute).
+		If ind_pop_list is not specified, then all phenodata are returned.
 
 		:param ind_pop_list: list of (individual id, population id)
 
 		'''
 		if self.phenodata is None:
 			return None
-		return tf.expand_dims(
-		           tf.convert_to_tensor([self.phenodata.get((pop, ind), None)
-		                                 for ind, pop in ind_pop_list]),
-		           axis=-1)
+		if ind_pop_list is None:
+			phenolist = list(self.phenodata.values())
+		else:
+			phenolist = [self.phenodata.get((pop, ind), None)
+			             for ind, pop in ind_pop_list]
+		return tf.expand_dims(tf.convert_to_tensor(phenolist), axis=-1)
 
 	def write(self, outfile, ind_pop_list, phenos, include_stored = False):
 		'''
