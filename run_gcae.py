@@ -663,7 +663,7 @@ if __name__ == "__main__":
 
 		# TODO: perhaps enable customizable pheno loss function
 		def pheno_loss_func(y_pred, y_true):
-			return tf.math.reduce_sum(tf.square(y_pred - y_true)) * 1e-2
+			return tf.math.reduce_mean(tf.square(y_pred - y_true)) * 1e-2
 
 
 	# defining some constants before responding to the 'app' arguments
