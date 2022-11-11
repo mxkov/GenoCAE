@@ -413,11 +413,11 @@ class data_generator_pheno:
 		if include_stored:
 			phenos_target = self.generate(ind_pop_list)
 			output = ['PID\tIID\tvalue\ttarget']
-			output += ['{0}\t{1}\t{2}\t{3}'.format(pop, ind, pheno, pheno_t[0])
+			output += ['{0}\t{1}\t{2}\t{3}'.format(pop, ind, pheno[0], pheno_t[0])
 			           for (ind, pop), pheno, pheno_t in zip(ind_pop_list, phenos, phenos_target)]
 		else:
 			output = ['PID\tIID\tvalue']
-			output += ['{0}\t{1}\t{2}'.format(pop, ind, pheno)
+			output += ['{0}\t{1}\t{2}'.format(pop, ind, pheno[0])
 			           for (ind, pop), pheno in zip(ind_pop_list, phenos)]
 		f = open(outfile, "wt")
 		f.write('\n'.join(output))

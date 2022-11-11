@@ -1180,8 +1180,8 @@ if __name__ == "__main__":
 					targets_train = np.concatenate((targets_train, targets_train_batch[:,0:n_markers]), axis=0)
 
 					if pheno_model is not None:
-						phenoutput_train_batch = pheno_model(encoded_train_batch,
-						                                     is_training = False)[0][:,0]
+						phenoutput_train_batch, _ = pheno_model(encoded_train_batch,
+						                                        is_training = False)
 						pheno_loss_train_batch = pheno_loss_func(y_pred = phenoutput_train_batch,
 						                                         y_true = phenotargets_train_batch)
 						pheno_loss_value_per_train_batch.append(pheno_loss_train_batch)
@@ -1221,7 +1221,7 @@ if __name__ == "__main__":
 				loss_value += sum(autoencoder.losses)
 
 				if pheno_model is not None:
-					phenoutput_train = pheno_model(encoded_train, is_training = False)[0]
+					phenoutput_train, _ = pheno_model(encoded_train, is_training = False)
 					pheno_loss_value = pheno_loss_func(y_pred = phenoutput_train,
 					                                   y_true = phenotargets_train)
 
