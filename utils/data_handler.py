@@ -367,6 +367,7 @@ class data_generator_pheno:
 		self.filepath = filepath
 		self.pt_index = pt_index
 		self.phenomodel_defined = phenomodel_defined
+		self.ind_pop_list_default = None
 		self._read()
 
 	def _read(self):
@@ -378,8 +379,12 @@ class data_generator_pheno:
 			f = open(self.filepath, "rt")
 			lines = f.read().strip().split("\n")[1:]
 			f.close()
+			splitlines = [full_line.strip().split() for full_line in lines]
 			self.phenodata = {(line[0], line[1]) : float(line[self.pt_index + 2])
-			                  for line in (full_line.strip().split() for full_line in lines)}
+			                  for line in splitlines}
+			# A band-aid to ensure consistent ordering in self.generate() by default
+			# (keeps track of the order of items in the input file)
+			self.ind_pop_list_default = [(line[1], line[0]) for line in splitlines]
 		else:
 			self.phenodata = None
 
@@ -394,10 +399,9 @@ class data_generator_pheno:
 		if self.phenodata is None:
 			return None
 		if ind_pop_list is None:
-			phenolist = list(self.phenodata.values())
-		else:
-			phenolist = [self.phenodata.get((pop, ind), None)
-			             for ind, pop in ind_pop_list]
+			ind_pop_list = self.ind_pop_list_default
+		phenolist = [self.phenodata.get((pop, ind), None)
+		             for ind, pop in ind_pop_list]
 		return tf.expand_dims(tf.convert_to_tensor(phenolist), axis=-1)
 
 	def write(self, outfile, ind_pop_list, phenos, include_stored = False):
