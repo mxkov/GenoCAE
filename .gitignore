@@ -11,6 +11,7 @@ ae_out*
 runs/run_localtest_*
 # Logs
 runs/logs/
+singularity/oldlogs/
 
 # The sandbox
 x_misc/

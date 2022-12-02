@@ -7,7 +7,7 @@ From: nvidia/cuda:11.7.1-cudnn8-devel-ubuntu20.04
 
 %post
     apt-get update && apt-get upgrade -y && \
-    apt-get install -y wget grep python3-pip python3-dev
+    apt-get install -y man-db vim grep wget git python3-pip python3-dev
     
     # Tip from Pavlin Mitev
     python3 -m pip install --no-cache-dir --upgrade pip
@@ -15,16 +15,10 @@ From: nvidia/cuda:11.7.1-cudnn8-devel-ubuntu20.04
     python3 -m pip install --no-cache-dir -r /opt/gcae_requirements.txt
 
 %test
-    # not sure if i need this one.
-    # like, how do i even test this.
-    # perhaps check if the dependencies have been installed properly?
-    
-    # how about this
     python3 -m pip list
-    # and maybe run a grep over the output
 
 %help
     This is a container of dependencies for GCAE.
     Enter this container and run GCAE from the inside.
-    For help on GCAE, see https://github.com/mxkov/GenoCAE#readme
+    For help on GCAE, see https://github.com/mxkov/GenoCAE/tree/phenopred#readme
 
