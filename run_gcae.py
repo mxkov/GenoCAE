@@ -16,15 +16,15 @@ Options:
   --train_opts_id=<name>     train options id, corresponding to a file train_opts/{train_opts_id}.json
   --data_opts_id=<name>      data options id, corresponding to a file data_opts/{data_opts_id}.json
   --epochs<num>              number of epochs to train
-  --resume_from<num>	     saved epoch to resume training from. set to -1 for latest saved epoch. DEFAULT: None (don't resume)
-  --save_interval<num>	     epoch intervals at which to save state of model. DEFAULT: None (don't save)
-  --start_saving_from<num>	 number of epochs to train before starting to save model state. DEFAULT: 0.
+  --resume_from<num>         saved epoch to resume training from. set to -1 for latest saved epoch. DEFAULT: None (don't resume)
+  --save_interval<num>       epoch intervals at which to save state of model. DEFAULT: None (don't save)
+  --start_saving_from<num>   number of epochs to train before starting to save model state. DEFAULT: 0.
   --trainedmodelname=<name>  name of the model training directory to fetch saved model state from when project/plot/evaluating
-  --pdata=<name>     	     file prefix, not including path, of data to project/plot/evaluate. if not specified, assumed to be the same the model was trained on.
+  --pdata=<name>             file prefix, not including path, of data to project/plot/evaluate. if not specified, assumed to be the same the model was trained on.
   --epoch<num>               epoch at which to project/plot/evaluate data. DEFAULT: all saved epochs
   --superpops<name>          path+filename of file mapping populations to superpopulations. used to color populations of the same superpopulation in similar colors in plotting. if not absolute path: assumed relative to GenoCAE/ directory.
   --metrics=<name>           the metric(s) to evaluate, e.g. hull_error of f1 score. can pass a list with multiple metrics, e.g. "f1_score_3,f1_score_5". DEFAULT: f1_score_3
-  --patience=<num>	 	     stop training after this number of epochs without improving lowest validation. DEFAULT: None
+  --patience=<num>           stop training after this number of epochs without improving lowest validation. DEFAULT: None
   --pheno_model_id=<name>    phenotype model id, e.g. "p1", corresponding to a file models/{pheno_model_id}.json
   --phenotype_index=<num>    number of the phenotype of interest in file {data}.phe, 0 for the first phenotype after the ID columns. DEFAULT: 0.
 
