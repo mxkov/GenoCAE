@@ -158,9 +158,7 @@ Accepted data formats are
 * PLINK (bed/bim/fam). Details [here](https://www.cog-genomics.org/plink/1.9/input#bed)
 
 
-A small example data set **HumanOrigins249_tiny** is in [data/example_tiny/](data/example_tiny/) with 249 samples and 9259 SNPs. This can be used for local testing.
-
-The [data/](data/) directory also contains more small datasets derived from **HumanOrigins249_tiny**, including some with phenotype data (.phe files); see the [phenomodel](#phenomodel) section.
+A small example data set **HumanOrigins249_tiny** is in [data/example_tiny/](data/example_tiny/) with 249 samples and 9259 SNPs (including phenotype data in .phe format; see the [phenomodel](#phenomodel) section). This can be used for local testing.
 
 ### data options
 
@@ -375,7 +373,7 @@ The training procedure saves the current state of the model in the directory wei
 Command to train a model on the example data :
 
     $ cd GenoCAE/
-    $ python3 run_gcae.py train --datadir data/example_tiny/\
+    $ python3 run_gcae.py train --datadir data/example_tiny/ \
       --data HumanOrigins249_tiny --model_id M1 \
       --epochs 20 --save_interval 2 \
       --train_opts_id ex3 --data_opts_id b_0_4
@@ -405,13 +403,13 @@ it will be displayed on localhost:6006 in the browser
 #### Training with phenotypes
 
     $ cd GenoCAE/
-    $ python3 run_gcae.py train --datadir data/HOpheno_249ind_1000snp/ \
-      --data HOpheno_249ind_1000snp --model_id M1 \
+    $ python3 run_gcae.py train --datadir data/example_tiny/ \
+      --data HumanOrigins249_tiny --model_id M1 \
       --epochs 20 --save_interval 2 \
       --train_opts_id ex3 --data_opts_id b_0_4 \
       --pheno_model_id ph1
 
-This creates a model training directory **ae_out/ae.M1.ph1.ex3.b_0_4.HOpheno_249ind_1000snp/** with the same files and subdirectories as above, as well as a few additional ones.
+This creates a model training directory **ae_out/ae.M1.ph1.ex3.b_0_4.HumanOrigins249_tiny/** with the same files and subdirectories as above, as well as a few additional ones.
 Additional subdirectories:
 * train_pheno/: tensorboard statistics for the train set with phenotypes
 * valid_pheno/: tensorboard statistics for the valid set with phenotypes
@@ -448,10 +446,10 @@ This creates a directory named after the projected data containing:
 #### Projecting with phenotypes
 
     $ cd GenoCAE/
-    $ python3 run_gcae.py project --datadir data/HOpheno_249ind_1000snp/ \
-      --data HOpheno_249ind_1000snp --model_id M1 \
+    $ python3 run_gcae.py project --datadir data/example_tiny/ \
+      --data HumanOrigins249_tiny --model_id M1 \
       --train_opts_id ex3 --data_opts_id b_0_4 \
-      --superpops data/HOpheno_249ind_1000snp/HO_superpopulations \
+      --superpops data/example_tiny/HO_superpopulations \
       --pheno_model_id ph1
 
 This likewise creates a directory named after the projected data with all the files mentioned above; in addition, for every saved epoch there is a tab-delimited file **pheno_e_{epoch}.phe** containing population IDs, individual IDs, predicted phenotypes and target phenotypes for every sample.
