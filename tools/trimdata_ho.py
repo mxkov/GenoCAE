@@ -247,3 +247,4 @@ if format_available['plink']:
 	for outfile in outfiles:
 		reportOutfile(outfile, margin = '\n')
 	
+
