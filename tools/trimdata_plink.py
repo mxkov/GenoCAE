@@ -49,7 +49,7 @@ Filter data by values in column col
 		else:
 			grammar = ['s', 'are']
 		# keep only valid values in values
-		values = list(set(values)-set(values_res))
+		values = sorted(list(set(values)-set(values_res)))
 		if len(values) > 0:
 			if len(values) == 1:
 				msg = '{} {}'.format(name, values[0])
@@ -200,6 +200,7 @@ if __name__ == '__main__':
 			if format_available[frmt]:
 				for ext in dataformats[frmt]:
 					outfile = '.'.join((outprefix, ext))
+					print('Copying {}...'.format(ext))
 					copy2(eval(ext), outfile)
 					reportOutfile(outfile)
 		exit()
@@ -207,6 +208,7 @@ if __name__ == '__main__':
 	margin1 = '\n'
 
 	# Read data
+	print('\nReading data...')
 	G = read_plink1_bin(bed, bim=bim, fam=fam, verbose=False)
 	# Extract metadata for samples and variants
 	G_meta_s = {field: G[field].values
@@ -230,7 +232,15 @@ if __name__ == '__main__':
 
 	# snips:
 	if m is None:
-		print('{}m is not specified, using all SNPs'.format(margin1))
+		if chroms is None or len(chroms) == 0:
+			insert = ''
+		else:
+			if len(chroms) == 1:
+				ending = ''
+			else:
+				ending = 's'
+			insert = ' on chromosome{} {}'.format(ending, ', '.join(chroms))
+		print('{}m is not specified, using all SNPs{}'.format(margin1, insert))
 		margin1 = ''
 	else:
 		G_meta_v, snips_sampled = samplesnips(G_meta_v, m)
@@ -249,16 +259,25 @@ if __name__ == '__main__':
 
 	# individuals:
 	if n is None and k is None:
-		print('{}n, k are not specified, using all individuals'.format(margin1))
+		if traits is None or len(traits) == 0:
+			insert = ''
+		else:
+			if len(traits) == 1:
+				ending = ''
+			else:
+				ending = 's'
+			insert = ' with trait{} {}'.format(ending, ', '.join(traits))
+		print('{}n, k are not specified, using all individuals{}'.format(margin1, insert))
 		margin1 = ''
 	else:
 		G_meta_s, _ = trimIndFam(G_meta_s, n, k)
 		G = G.sel(sample = list(G_meta_s['sample']))
 
 	# output
+	print('\nWriting data...')
 	outfiles = ['.'.join((outprefix, ext)) for ext in dataformats['plink']]
 	write_plink1_bin(G, *outfiles, verbose=False)
 	for outfile in outfiles:
-		reportOutfile(outfile, margin = '\n')
+		reportOutfile(outfile)
 	print('\n')
 
