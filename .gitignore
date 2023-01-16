@@ -4,8 +4,14 @@
 # Python cache
 *__pycache__
 
+# Test outputs
+test/test*/
+
 # Output dirs
 ae_out*
+
+# Sensitive data
+data/ukb*
 
 # Toy runscripts
 runs/run_localtest_*
