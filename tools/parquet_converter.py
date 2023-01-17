@@ -3,7 +3,7 @@ All path arguments are assumed relative to GenoCAE/ directory if not absolute.
 Regex are only accepted for file names, not directories. Hence, all files of a specific format should be in the same directory.
 
 Usage:
-  parquet_converter.py --bed=<name> --bim=<name> --fam=<name> --out=<name> [--normalize=<name> --chunksize=<num>]
+  parquet_converter.py --bed=<name> --bim=<name> --fam=<name> --out=<name> [--normalize=<name> --drop=<name> --chunksize=<num>]
 
 Options:
   -h --help           show this screen
@@ -12,6 +12,7 @@ Options:
   --fam=<name>        path + filename regex for the FAM files
   --out=<name>        path and prefix for the output data (BIM + FAM + Parquet)
   --normalize=<name>  normalization method: genotypewise01, smartPCAstyle, standard, or no normalization if not specified
+  --drop=<name>       path to a text file with lines in format "i,var"; for every such line, all samples with value "var" in column i (starting from 0) will be dropped from the FAM files
   --chunksize=<num>   size of SNP chunks to use when building the dataset, mostly for testing/debugging purposes. DEFAULT: None (auto)
 '''
 # TODO: implement normalization (don't forget nan imputation, see data_handler)
@@ -53,18 +54,20 @@ class GenoMeta:
 	      BED filepaths corresponding to the i`s
 	  df: pandas.DataFrame
 	      full BIM or FAM dataframe
+	  dropped: list
+	      list of item IDs dropped from self.df
 	  _start_index: int
 	      tip of the filelist, in case we decide to append more files to an existing GenoMeta object
 
 	Methods:
-	  append(filelist_add, bedlist_add, drop = [], idcol = 1):
+	  append(filelist_add, bedlist_add, drop = None, idcol = 1):
 	      add data from more BIM or FAM files
 
 See GenoMeta.__init__.__doc__ for more info on how to build a GenoMeta object.
 	'''
 
 	def __init__(self, filelist_init, bedlist_init,
-	                   drop_init = [], make_index = False):
+	                   drop_init = None, make_index = False):
 		'''Constructs a GenoMeta object.
 
 	Parameters:
@@ -72,8 +75,8 @@ See GenoMeta.__init__.__doc__ for more info on how to build a GenoMeta object.
 	      BIM or FAM filepaths to 1) initialize self.filelist with and 2) to read self.df from
 	  bedlist_init: list
 	      BED filepaths to initialize self.bedlist with; assumed to be aligned with filelist_init
-	  drop_init: list
-	      list of (col, val) tuples; for each pair, values equal to val will be dropped from column col in self.df. DEFAULT: empty list
+	  drop_init: pandas.DataFrame
+	      dataframe with rows in format (col, val); for each pair, values equal to val will be dropped from column col (starting from 0) in self.df. DEFAULT: None
 	  make_index: bool
 	      whether to create self.fileindex. DEFAULT: False
 		'''
@@ -84,10 +87,11 @@ See GenoMeta.__init__.__doc__ for more info on how to build a GenoMeta object.
 		self.filelist = []
 		self.bedlist = []
 		self.df = None
+		self.dropped = []
 		self._start_index = 0
 		self.append(filelist_init, bedlist_init, drop = drop_init)
 
-	def append(self, filelist_add, bedlist_add, drop = [], idcol = 1):
+	def append(self, filelist_add, bedlist_add, drop = None, idcol = 1):
 		'''Adds more data to a GenoMeta object.
 
 	Parameters:
@@ -95,24 +99,33 @@ See GenoMeta.__init__.__doc__ for more info on how to build a GenoMeta object.
 	      BIM or FAM filepaths to add to self.filelist and self.df
 	  bedlist_add: list
 	      BED filepaths to add to self.bedlist; assumed to be aligned with filelist_add
-	  drop: list
-	      list of (col, val) tuples; for each pair, values equal to val will be dropped from column col in the dataframe constructed from filelist_add. DEFAULT: empty list
+	  drop: pandas.DataFrame
+	      dataframe with rows in format (col, val); for each pair, values equal to val will be dropped from column col (starting from 0) in self.df. DEFAULT: None
 	  idcol: int
-	      index of the ID column in the BIM/FAM files, starting with 0. DEFAULT: 1 (snip ID and IID in BIM and FAM formats)
+	      index of the ID column in the BIM/FAM files, starting from 0. DEFAULT: 1 (snip ID and IID in BIM and FAM formats)
 		'''
-		# TODO: !!!!! DROP SHOULD BE DONE IN A DIFFERENT PLACE AS WELL
-		# WHEN LOADING Gs
+		if drop is None:
+			drop = []
+		else:
+			drop = list(drop.itertuples(index = False, name = None))
+
 		for i, filepath in enumerate(filelist_add):
 			df_ = pd.read_table(filepath,
 			                    header = None, delimiter=r'\s+')
+			# Drop
 			for col, val in drop:
+				dropped1 = list(df_.loc[df_[col] == val, idcol])
+				self.dropped.extend(dropped1)
 				df_ = df_.loc[df_[col] != val]
+			self.dropped.sort()
+			# Grow self.df
 			if self.df is None:
 				self.df = df_.copy(deep = True)
 			else:
 				self.df = pd.concat((self.df, df_),
 				                    ignore_index = True)
 				self.df.drop_duplicates(subset = idcol, inplace = True)
+			# Create fileindex if asked to
 			if self.fileindex is not None:
 				# Index of the current file:
 				i_current = self._start_index + i
@@ -136,8 +149,8 @@ For example, this can happen when n-1 BED files each have a different subset of 
 
 These genotypes will then be processed in the same way as regular missing genotypes, but the warning needs to be raised.
 	'''
-	msg = ('{}Warning: Genotypes for some variant+sample '.format(indent)
-	     + ' pairs are not present in the provided BED files')
+	msg = ('{}Warning: Genotypes for some variant+sample'.format(indent) +
+	       ' pairs are not present in the provided BED files')
 	_ = warnings.warn(msg)
 	# TODO: how about specifying which pairs are missing huh
 
@@ -173,7 +186,7 @@ if __name__ == '__main__':
 
 	# Parse arguments
 	try:
-		arguments = docopt(__doc__, version='Parquet Converter 1.0.0')
+		arguments = docopt(__doc__, version='Parquet Converter 1.1.0')
 	except DocoptExit:
 		print('\nInvalid command. Run `python3 parquet_converter.py --help` for more information.\n')
 		exit(1)
@@ -187,7 +200,10 @@ if __name__ == '__main__':
 	# Handle the paths
 	GCAE_DIR = Path(__file__).resolve().parents[1]
 	print('\nProject directory: ' + str(GCAE_DIR))
-	for parg in ('bed', 'bim', 'fam', 'out'):
+	path_args = ['bed', 'bim', 'fam', 'out']
+	if arguments['drop']:
+		path_args.append('drop')
+	for parg in path_args:
 		if not os.path.isabs(os.path.dirname(arguments[parg])):  # note: works with regex dirnames
 			arguments[parg] = os.path.join(GCAE_DIR, arguments[parg])
 
@@ -225,7 +241,7 @@ if __name__ == '__main__':
 		filename_regex = re.compile(filename_pattern)
 		files[ext] = [os.path.join(filedir, f) for f in os.listdir(filedir)
 		              if filename_regex.match(f)]
-		files[ext] = sorted(files[ext])
+		files[ext].sort()
 	# if files from the sorted lists don't match each other,
 	# then it's on the user, sorry
 
@@ -248,6 +264,12 @@ if __name__ == '__main__':
 		print('\nFile written: {}\n'.format(testfile))
 		exit()
 
+	# Read the drop file
+	if arguments['drop']:
+		drop_df = pd.read_csv(arguments['drop'], header = None)
+	else:
+		drop_df = None
+
 	# Read all BIMs & FAMs, combine them,
 	# make an index of BIM files for snips
 	print('\nReading BIM and FAM data...')
@@ -255,7 +277,7 @@ if __name__ == '__main__':
 	gmeta['bim'] = GenoMeta(files['bim'], files['bed'],
 	                        make_index = True)
 	gmeta['fam'] = GenoMeta(files['fam'], files['bed'],
-	                        drop_init = [(5, 'redacted3')])
+	                        drop_init = drop_df)
 	# Write the combined BIM and FAM
 	for ext in ('bim', 'fam'):
 		outfile = arguments['out'] + '.' + ext
@@ -308,7 +330,7 @@ if __name__ == '__main__':
 		# Within this loop, we're working with one chunk of snips.
 		#
 		# Create chunk:
-		chunk_snps = gmeta['bim'].df[1][start:(start+chunk_size)]
+		chunk_snps = list(gmeta['bim'].df[1][start:(start+chunk_size)])
 		start += chunk_size
 		chunk_num += 1
 		print('Processing chunk #{}'.format(chunk_num+1), end='\r')
@@ -328,17 +350,18 @@ if __name__ == '__main__':
 				                    files['bim'][i],
 				                    files['fam'][i],
 				                    verbose = False)
-				# Extract metadata for variants and samples
-				meta_v = pd.DataFrame(data = {x: G[x].values
-				                              for x in ('variant','snp')})
-				meta_s = pd.DataFrame(data = {x: G[x].values
-				                              for x in ('sample', 'iid')})
+				G_snps    = G['snp'].values
+				G_samples = G['sample'].values
 				# Assign snip ids to the variant field.
 				# The "variant{i} pattern is too ambiguous and messes everything up.
-				G = G.assign_coords(variant = G['snp'].values)
-				# Select chunk snips, filter G, replace nans
-				chunk_snps_present = list(meta_v['snp'].loc[meta_v['snp'].isin(chunk_snps)])
-				G = G.sel(variant = chunk_snps_present)
+				G = G.assign_coords(variant = G_snps)
+				# Select genotypes of chunk snips
+				G = G.sel(variant = [x for x in G_snps
+				                     if x in chunk_snps])
+				# Drop the dropped samples
+				G = G.sel(sample  = [x for x in G_samples
+				                     if x not in gmeta['fam'].dropped])
+				# Fill missing genotypes
 				G = G.fillna(9.0)
 				# Combine
 				if chunk_data is not None:
@@ -391,9 +414,9 @@ if __name__ == '__main__':
 			# Write this chunk to a smaller parquet file
 			# (if we have multiple chunks)
 			if n_chunks > 1:
-				outfilename = (outprefix_base
-				               + str(chunk_num).zfill(n_chunks_len)
-				               + '.parquet')
+				outfilename = (outprefix_base +
+				               str(chunk_num).zfill(n_chunks_len) +
+				               '.parquet')
 				outfile = os.path.join(tmpdir, outfilename)
 				pq.write_table(chunk_data, outfile)
 
@@ -427,8 +450,8 @@ if __name__ == '__main__':
 				print('Writing chunk #{}'.format(chunk_num+1), end='\r')
 				tfile = os.path.join(tmpdir, tfilename)
 				writer.write_table(pq.read_table(tfile))
-		print('\nGenotype data from all chunks written to file '
-		      + str(outfile))
+		print('\nGenotype data from all chunks written to file ' +
+		      str(outfile))
 		# remove the temp dir
 		print('Deleting the temporary directory...')
 		rmtree(tmpdir)
