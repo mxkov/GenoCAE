@@ -7,6 +7,36 @@ import pyarrow.parquet as pq
 from subprocess import Popen, DEVNULL, STDOUT
 
 
+def cleanup(filepaths):
+	'''cleanup(filepaths): remove files given in filepaths'''
+	for f in filepaths:
+		if os.path.isfile(f):
+			os.remove(f)
+
+
+def drop_from_tiny(dataprefix, dataprefix_out, dropfile):
+	'''Drop certain samples from example_tiny to test dropping'''
+
+	drop = pd.read_csv(dropfile, header = None)
+	drop = list(drop.itertuples(index = False, name = None))
+
+	fam = pd.read_table(dataprefix + '.fam',
+	                    header = None, delimiter=r'\s+')
+	dropped = []
+	for col, val in drop:
+		dropped1 = list(fam.loc[fam[col] == val, 1])
+		dropped.extend(dropped1)
+	dropped.sort()
+
+	G = read_plink1_bin(dataprefix + '.bed', verbose = False)
+	s = G['sample'].values
+	G = G.sel(sample = [x for x in s if x not in dropped])
+	write_plink1_bin(G, dataprefix_out + '.bed', verbose = False)
+	newfiles = [dataprefix_out + ext for ext in ('.bed', '.bim', '.fam')]
+
+	return newfiles, dropped
+
+
 def split_tiny(dataprefix, testfilename, testdatadir):
 	'''Create a test example by splitting example_tiny (PLINK) into 12 chunks of snips'''
 
@@ -40,8 +70,8 @@ def split_tiny(dataprefix, testfilename, testdatadir):
 	return testexample_files
 
 
-def call_pqconv(testdatadir, testfilename, outfilename, chunk_size = None,
-                clear_test_data = False, test_data_files = []):
+def call_pqconv(testdatadir, testfilename, outfilename,
+                chunk_size = None, drop = None):
 	'''Call parquet_converter.py for the test example'''
 
 	testfilepaths = os.path.join(testdatadir, testfilename)
@@ -52,16 +82,13 @@ def call_pqconv(testdatadir, testfilename, outfilename, chunk_size = None,
 	for ext in EXTS:
 		cmd += ' --{}={}'.format(ext, testfilepaths + '.' + ext)
 	cmd += ' --out={}'.format(outprefix)
+	if drop is not None:
+		cmd += ' --drop={}'.format(drop)
 	if chunk_size is not None:
 		cmd += ' --chunksize={}'.format(chunk_size)
 
 	Popen(cmd, shell = True, stdout = DEVNULL, stderr = STDOUT).wait()
 	#os.system(cmd)
-
-	if clear_test_data:
-		for f in test_data_files:
-			if os.path.isfile(f):
-				os.remove(f)
 
 
 def check_result(dataprefix, testdatadir, outfilename):
@@ -102,19 +129,36 @@ def check_result(dataprefix, testdatadir, outfilename):
 	return resdict
 
 
-def tsting_pipeline(out_files = 'pqtest_result', chunk = None):
+def tsting_pipeline(out_files = 'pqtest_result',
+                    chunk = None, drop_file = None):
 	'''All testing steps combined for a single test'''
 
 	dp  = 'data/example_tiny/HumanOrigins249_tiny'
 	tfn = 'pqtest_[0-9]?[0-9]?_file'
 	tdd = 'test/test_parquet_converter/'
+	dp1 = os.path.join(tdd, 'HumanOrigins249_tiny_dropped')
 
 	filelist = split_tiny(dp, tfn, tdd)
-	call_pqconv(tdd, tfn, out_files, chunk_size = chunk,
-	            clear_test_data = True, test_data_files = filelist)
-	results = check_result(dp, tdd, out_files)
+	call_pqconv(tdd, tfn, out_files,
+	            chunk_size = chunk, drop = drop_file)
+	cleanup(filelist)
+	if drop_file is None:
+		results = check_result(dp, tdd, out_files)
+	else:
+		filelist1, _ = drop_from_tiny(dp, dp1, drop_file)
+		results = check_result(dp1, tdd, out_files)
+		cleanup(filelist1)
 
-	print('\n\nTEST RESULTS for chunk size {}:\n'.format(chunk))
+	msg = '\n\nTEST RESULTS'
+	msg_add = []
+	if chunk is not None:
+		msg_add.append(' chunk size {}'.format(chunk))
+	if drop_file is not None:
+		msg_add.append(' drop file {}'.format(drop_file))
+	if len(msg_add) > 0:
+		msg += ' for' + ','.join(msg_add)
+	msg += ':\n'
+	print(msg)
 	for tst in results:
 		print('{}: {}'.format(tst, results[tst]))
 
@@ -134,8 +178,25 @@ def test_pqconv_2():
 	                          chunk = 800)
 	assert all(reslist)
 
+def test_pqconv_3():
+	'''Test 3: single chunk of snips, with dropping'''
+	reslist = tsting_pipeline(out_files = 'pqtest_result_3',
+	                          chunk = None,
+	                          drop_file = 'test/drop_pqconvtest.csv')
+	assert all(reslist)
+
+def test_pqconv_4():
+	'''Test 4: several chunk of snips, size 1234, with dropping'''
+	reslist = tsting_pipeline(out_files = 'pqtest_result_4',
+	                          chunk = 1234,
+	                          drop_file = 'test/drop_pqconvtest.csv')
+	assert all(reslist)
+
 
 if __name__ == '__main__':
 	test_pqconv_1()
 	test_pqconv_2()
+	test_pqconv_3()
+	test_pqconv_4()
+	print('')
 
