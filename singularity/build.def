@@ -20,5 +20,5 @@ From: nvidia/cuda:11.7.1-cudnn8-devel-ubuntu20.04
 %help
     This is a container of dependencies for GCAE.
     Enter this container and run GCAE from the inside.
-    For help on GCAE, see https://github.com/mxkov/GenoCAE/tree/phenopred#readme
+    For help on GCAE, see https://github.com/mxkov/GenoCAE#readme
 
