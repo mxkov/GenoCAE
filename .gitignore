@@ -1,23 +1,21 @@
 # Singularity containers (too big)
 *.sif
+# Singularity logs, build files w/o Tensorflow, etc.
+singularity/*
+!singularity/build.def
 
 # Python cache
 *__pycache__
-
-# Test outputs
-test/test*/
 
 # Output dirs
 ae_out*
 
 # Sensitive data
-data/ukb*
+data/UKB*
+test/test_parquet_converter/in/*UKB*.csv
 
-# Toy runscripts
-runs/run_localtest_*
-# Logs
-runs/logs/
-singularity/oldlogs/
+# Runscripts
+runs/
 
 # The sandbox
 x_misc/
