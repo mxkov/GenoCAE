@@ -32,7 +32,10 @@ Options:
 
 from docopt import docopt, DocoptExit
 import tensorflow as tf
+import tensorflow.distribute as tfd
+import tensorflow.distribute.experimental as tfde
 from tensorflow.keras import Model, layers
+
 from datetime import datetime
 from utils.data_handler import get_saved_epochs, get_projected_epochs, write_h5, read_h5, get_coords_by_pop, data_generator_ae, data_generator_pheno, convex_hull_error, f1_score_kNN, plot_genotype_hist, to_genotypes_sigmoid_round, to_genotypes_invscale_round, GenotypeConcordance, get_pops_with_k, get_ind_pop_list_from_map, get_baseline_gc, write_metric_per_epoch_to_csv
 from utils.visualization import plot_coords_by_superpop, plot_clusters_by_superpop, plot_coords, plot_coords_by_pop, make_animation, write_f1_scores_to_csv
@@ -50,6 +53,24 @@ import copy
 import h5py
 import matplotlib.animation as animation
 from pathlib import Path
+
+
+def _isChief():
+	if "isChief" in os.environ:
+		if os.environ["isChief"] == "true":
+			return True
+		else:
+			return False
+	else:
+		return True
+
+def chief_print(msg):
+	if "isChief" in os.environ:
+		if os.environ["isChief"] == "true":
+			print(msg)
+	else:
+		print(msg)
+
 
 GCAE_DIR = Path(__file__).resolve().parent
 class Autoencoder(Model):
@@ -72,7 +93,7 @@ class Autoencoder(Model):
 		self.residuals = dict()
 		self.marker_spec_var = False
 
-		print("\n______________________________ Building model ______________________________")
+		chief_print("\n______________________________ Building model ______________________________")
 		# variable that keeps track of the size of layers in encoder, to be used when constructing decoder.
 		ns=[]
 		ns.append(n_markers)
@@ -90,7 +111,7 @@ class Autoencoder(Model):
 			activation = None
 
 		self.all_layers.append(first_layer)
-		print("Adding layer: " + str(layer_module.__name__) + ": " + str(layer_args))
+		chief_print("Adding layer: " + str(layer_module.__name__) + ": " + str(layer_args))
 
 		if first_layer_def["class"] == "conv1d" and "strides" in layer_args.keys() and layer_args["strides"] > 1:
 			ns.append(int(first_layer.shape[1]))
@@ -111,7 +132,7 @@ class Autoencoder(Model):
 			if layer_def["class"] == "Conv1D" and "strides" in layer_def.keys() and layer_def["strides"] > 1:
 				raise NotImplementedError
 
-			print("Adding layer: " + str(layer_module.__name__) + ": " + str(layer_args))
+			chief_print("Adding layer: " + str(layer_module.__name__) + ": " + str(layer_args))
 
 			if "name" in layer_args and (layer_args["name"] == "i_msvar" or layer_args["name"] == "nms"):
 				self.marker_spec_var = True
@@ -136,7 +157,7 @@ class Autoencoder(Model):
 			self.ms_variable = tf.Variable(random_uniform(shape = (1, n_markers), dtype=tf.float32), name="marker_spec_var")
 			self.nms_variable = tf.Variable(random_uniform(shape = (1, n_markers), dtype=tf.float32), name="nmarker_spec_var")
 		else:
-			print("No marker specific variable.")
+			chief_print("No marker specific variable.")
 
 
 	def call(self, input_data, is_training = True, verbose = False):
@@ -162,14 +183,14 @@ class Autoencoder(Model):
 			input_data = concatted_input
 
 		if verbose:
-			print("inputs shape " + str(input_data.shape))
+			chief_print("inputs shape " + str(input_data.shape))
 
 		first_layer = self.all_layers[0]
 		counter = 1
 
 		if verbose:
-			print("layer {0}".format(counter))
-			print("--- type: {0}".format(type(first_layer)))
+			chief_print("layer {0}".format(counter))
+			chief_print("--- type: {0}".format(type(first_layer)))
 
 		x = first_layer(inputs=input_data)
 
@@ -178,7 +199,7 @@ class Autoencoder(Model):
 			if not out == None:
 				x = out
 		if verbose:
-			print("--- shape: {0}".format(x.shape))
+			chief_print("--- shape: {0}".format(x.shape))
 
 		# indicator if were doing genetic clustering (ADMIXTURE-style) or not
 		have_encoded_raw = False
@@ -196,7 +217,7 @@ class Autoencoder(Model):
 			counter += 1
 
 			if verbose:
-				print("layer {0}: {1} ({2}) ".format(counter, layer_name, type(layer_def)))
+				chief_print("layer {0}: {1} ({2}) ".format(counter, layer_name, type(layer_def)))
 
 			if layer_name == "dropout":
 				x = layer_def(x, training = is_training)
@@ -213,7 +234,7 @@ class Autoencoder(Model):
 				encoded_data_raw = x
 
 			# If this is the encoding layer, we add noise if we are training
-			if layer_name == "encoded":
+			elif "encoded" in layer_name:
 				if self.noise_std and not have_encoded_raw:
 					x = self.noise_layer(x, training = is_training)
 				encoded_data = x
@@ -231,7 +252,7 @@ class Autoencoder(Model):
 				x = self.injectms(verbose, x, layer_name, nms_tiled, self.nms_variable)
 
 			if verbose:
-				print("--- shape: {0}".format(x.shape))
+				chief_print("--- shape: {0}".format(x.shape))
 
 		if self.regularizer and encoded_data is not None:
 			reg_module = eval(self.regularizer["module"])
@@ -253,12 +274,12 @@ class Autoencoder(Model):
 		res_number = suffix[0:-1]
 		if suffix.endswith("a"):
 			if verbose:
-				print("encoder-to-decoder residual: saving residual {}".format(res_number))
+				chief_print("encoder-to-decoder residual: saving residual {}".format(res_number))
 			self.residuals[res_number] = input
 			return None
 		if suffix.endswith("b"):
 			if verbose:
-				print("encoder-to-decoder residual: adding residual {}".format(res_number))
+				chief_print("encoder-to-decoder residual: adding residual {}".format(res_number))
 			residual_tensor = self.residuals[res_number]
 			res_length = residual_tensor.shape[1]
 			if len(residual_tensor.shape) == 3:
@@ -270,7 +291,7 @@ class Autoencoder(Model):
 
 	def injectms(self, verbose, x, layer_name, ms_tiled, ms_variable):
 		if verbose:
-			print("----- injecting marker-specific variable")
+			chief_print("----- injecting marker-specific variable")
 
 		# if we need to reshape ms_variable before concatting it
 		if not self.n_markers == x.shape[1]:
@@ -287,79 +308,17 @@ class Autoencoder(Model):
 
 		if "_sg" in layer_name:
 			if verbose:
-				print("----- stopping gradient for marker-specific variable")
+				chief_print("----- stopping gradient for marker-specific variable")
 			ms_tiled = tf.stop_gradient(ms_tiled)
 
 		if verbose:
-			print("ms var {}".format(ms_variable.shape))
-			print("ms tiled {}".format(ms_tiled.shape))
-			print("concatting: {0} {1}".format(x.shape, ms_tiled.shape))
+			chief_print("ms var {}".format(ms_variable.shape))
+			chief_print("ms tiled {}".format(ms_tiled.shape))
+			chief_print("concatting: {0} {1}".format(x.shape, ms_tiled.shape))
 
 		x = tf.concat([x, ms_tiled], 2)
 
 		return x
-
-@tf.function
-def run_optimization(model, optimizer, loss_function, input, targets,
-                     phenomodel=None, phenotargets=None, pheno_loss_function=None):
-	'''
-	Run one step of optimization process based on the given data.
-
-	:param model: a tf.keras.Model
-	:param optimizer: a tf.keras.optimizers
-	:param loss_function: a loss function
-	:param input: input genotype data
-	:param targets: target genotype data
-	:param phenomodel: a tf.keras.Model
-	:param phenotargets: target phenotype data
-	:return: loss function values for model and phenomodel
-
-	'''
-	def combine_gradients(grad1, grad2):
-		alpha_nom = tf.constant(0.)
-		alpha_denom = tf.constant(1.0e-30)
-		for g1, g2 in zip(grad1, grad2):
-			if g1 is not None and g2 is not None:
-				gdiff = g2 - g1
-				alpha_nom += tf.math.reduce_sum(gdiff * g2)
-				alpha_denom += tf.math.reduce_sum(gdiff * gdiff)
-		alpha = alpha_nom / alpha_denom
-		alpha_capped = tf.clip_by_value(alpha, 0., 1.)
-		grad = []
-		for g1, g2 in zip(grad1, grad2):
-			if g1 is None:
-				grad.append(g2)
-			elif g2 is None:
-				grad.append(g1)
-			else:
-				grad.append(g1*(alpha_capped) + g2*(1.0-alpha_capped))
-		return grad, alpha
-	
-	if pheno_loss_function is None:
-		print("Warning: pheno loss function not specified, using default")
-		def pheno_loss_function(y_pred, y_true):
-			return tf.math.reduce_sum(tf.square(y_pred - y_true)) * 1e-2
-
-	allvars = model.trainable_variables + (phenomodel.trainable_variables if phenomodel is not None else [])
-
-	with tf.GradientTape() as g:
-		output, _ = model(input, is_training=True)
-		loss_value = loss_function(y_pred = output, y_true = targets)
-		loss_value += sum(model.losses)
-	gradients = g.gradient(loss_value, allvars)
-
-	if phenomodel is not None:
-		with tf.GradientTape() as g2:
-			_, encoded_data = model(input, is_training=True)
-			phenoutput, _ = phenomodel(encoded_data, is_training=True)
-			pheno_loss_value = pheno_loss_function(phenoutput, phenotargets)
-		phenogradients = g2.gradient(pheno_loss_value, allvars)
-		gradients, _ = combine_gradients(gradients, phenogradients)
-	else:
-		pheno_loss_value = None
-
-	optimizer.apply_gradients(zip(gradients, allvars))
-	return loss_value, pheno_loss_value
 
 
 def get_batches(n_samples, batch_size):
@@ -394,11 +353,16 @@ def alfreqvector(y_pred):
 def save_model_weights(epoch, train_dir, weights_dir, model, prefix=""):
 	if model is None:		# happens to phenomodel sometimes
 		return
-	weights_file_prefix = os.path.join(train_dir, weights_dir, "{}{}".format(prefix, epoch))
-	startTime = datetime.now()
-	model.save_weights(weights_file_prefix, save_format ="tf")
-	save_time = (datetime.now() - startTime).total_seconds()
-	print("-------- Saving weights: {0} time: {1}".format(weights_file_prefix, save_time))
+	if _isChief():
+		weights_file_prefix = os.path.join(train_dir, weights_dir, "{}{}".format(prefix, epoch))
+		startTime = datetime.now()
+		model.save_weights(weights_file_prefix, save_format ="tf")
+		save_time = (datetime.now() - startTime).total_seconds()
+		print("-------- Saving weights: {0} time: {1}".format(weights_file_prefix, save_time))
+	# TODO: rework this.
+	# "Apparently, in order to save the model, the save_model call needs to be made on all processes,
+	# but they cannot be saved to the same file, since that causes a race condition".
+	# https://www.tensorflow.org/tutorials/distribute/save_and_load
 
 
 
@@ -408,15 +372,130 @@ if __name__ == "__main__":
 	tf.keras.backend.set_floatx('float32')
 
 	try:
-		arguments = docopt(__doc__, version='GenoCAE 1.1.0')
+		arguments = docopt(__doc__, version='GenoCAE 1.2.0')
 	except DocoptExit:
-		print("Invalid command. Run 'python run_gcae.py --help' for more information.")
+		chief_print("Invalid command. Run 'python run_gcae.py --help' for more information.")
 		exit(1)
+
+	gpus_raw = tf.config.list_physical_devices(device_type="GPU")
+	chief_print("Available GPU devices:\n{}".format(gpus_raw))
+	num_physical_gpus = len(gpus_raw)
+	gpus = ["gpu:"+ str(i) for i in range(num_physical_gpus)]
 
 	for k in list(arguments.keys()):
 		knew = k.split('--')[-1]
 		arg=arguments.pop(k)
 		arguments[knew]=arg
+
+
+	## Define distribution strategies
+
+	if "SLURMD_NODENAME" in os.environ:
+
+		slurm_job = 1
+		# TODO: mind that set_tf_config() is implemented in utils.set_tf_config_berzelius_1_proc_per_gpu
+		addresses, chief, num_workers = set_tf_config()
+		isChief = os.environ["SLURMD_NODENAME"] == chief
+		os.environ["isChief"] = json.dumps(str(isChief))
+		chief_print("Number of workers: {}".format(num_workers))
+
+		if num_workers > 1 and not arguments["evaluate"]:
+			# Don't use SlurmClusterResolver: we don't always run this on an HPC cluster
+			resolver = tfd.cluster_resolver.TFConfigClusterResolver()
+			comm_opts = tfde.CommunicationOptions(implementation = tfde.CommunicationImplementation.NCCL)
+			# CollectiveCommunication is deprecated in TF 2.7
+			strat = tfd.MultiWorkerMirroredStrategy(cluster_resolver = resolver,
+			                                        communication_options = comm_opts)
+
+		else:
+			if not isChief:
+				print("Work has ended for this worker, now relying only on the Chief :)")
+				exit(0)
+			slurm_job = 0
+			strat = tfd.MirroredStrategy(devices = gpus,
+			                             cross_device_ops = tfd.NcclAllReduce())
+
+	else:
+		isChief = True
+		slurm_job = 0
+		num_workers = 1
+		strat = tfd.MirroredStrategy()
+
+	num_devices = strat.num_replicas_in_sync
+	chief_print('Number of devices: {}'.format(num_devices))
+
+
+	# how about we declare our tf-functions here
+	# (except losses, which have to be declared after parsing args)
+
+	@tf.function
+	def run_optimization(model, optimizer, loss_function, input_, targets,
+	                     phenomodel=None, phenotargets=None,
+	                     pheno_loss_function=None):
+		'''
+		Run one step of optimization process based on the given data.
+
+		:param model: a tf.keras.Model
+		:param optimizer: a tf.keras.optimizers
+		:param loss_function: a loss function
+		:param input: input genotype data
+		:param targets: target genotype data
+		:param phenomodel: a tf.keras.Model
+		:param phenotargets: target phenotype data
+		:return: loss function values for model and phenomodel
+		'''
+		def _combine_gradients(grad1, grad2):
+			alpha_nom = tf.constant(0.)
+			alpha_denom = tf.constant(1.0e-30)
+			for g1, g2 in zip(grad1, grad2):
+				if g1 is not None and g2 is not None:
+					gdiff = g2 - g1
+					alpha_nom += tf.math.reduce_sum(gdiff * g2)
+					alpha_denom += tf.math.reduce_sum(gdiff * gdiff)
+			alpha = alpha_nom / alpha_denom
+			alpha_capped = tf.clip_by_value(alpha, 0., 1.)
+			grad = []
+			for g1, g2 in zip(grad1, grad2):
+				if g1 is None:
+					grad.append(g2)
+				elif g2 is None:
+					grad.append(g1)
+				else:
+					grad.append(g1*(alpha_capped) + g2*(1.0-alpha_capped))
+			return grad, alpha
+	
+		if pheno_loss_function is None:
+			print("Warning: pheno loss function not specified, using default")
+			def pheno_loss_function(y_pred, y_true):
+				return tf.math.reduce_sum(tf.square(y_pred - y_true)) * 1e-2
+
+		allvars = model.trainable_variables + (phenomodel.trainable_variables
+		                                       if phenomodel is not None else [])
+
+		def step_fn(input1):
+			with tf.GradientTape() as g:
+				output, _ = model(input1, is_training=True)
+				loss_value = loss_function(y_pred = output, y_true = targets)
+				loss_value += sum(model.losses)
+			gradients = g.gradient(loss_value, allvars)
+			if phenomodel is not None:
+				with tf.GradientTape() as g2:
+					_, encoded_data = model(input1, is_training=True)
+					phenoutput, _ = phenomodel(encoded_data, is_training=True)
+					pheno_loss_value = pheno_loss_function(phenoutput, phenotargets)
+				phenogradients = g2.gradient(pheno_loss_value, allvars)
+				gradients, _ = _combine_gradients(gradients, phenogradients)
+			else:
+				pheno_loss_value = None
+			optimizer.apply_gradients(zip(gradients, allvars))
+			return loss_value, pheno_loss_value
+
+		# pr means per-replica
+		pr_losses, pr_pheno_losses = strat.run(step_fn, args = (input_,))
+		final_loss = strat.reduce("SUM", pr_losses, axis=None)
+		final_pheno_loss = strat.reduce("SUM", pr_pheno_losses, axis=None)
+		return final_loss, final_pheno_loss
+
 
 	if arguments["trainedmodeldir"]:
 		trainedmodeldir = arguments["trainedmodeldir"]
@@ -480,20 +559,20 @@ if __name__ == "__main__":
 		if "encoding_raw" in layer_def.keys():
 			doing_clustering = True
 
-	print("\n______________________________ arguments ______________________________")
+	chief_print("\n______________________________ arguments ______________________________")
 	for k in arguments.keys():
-		print(k + " : " + str(arguments[k]))
-	print("\n______________________________ data opts ______________________________")
+		chief_print(k + " : " + str(arguments[k]))
+	chief_print("\n______________________________ data opts ______________________________")
 	for k in data_opts.keys():
-		print(k + " : " + str(data_opts[k]))
-	print("\n______________________________ train opts ______________________________")
+		chief_print(k + " : " + str(data_opts[k]))
+	chief_print("\n______________________________ train opts ______________________________")
 	for k in train_opts:
-		print(k + " : " + str(train_opts[k]))
-	print("______________________________")
+		chief_print(k + " : " + str(train_opts[k]))
+	chief_print("______________________________")
 
 
-	batch_size = train_opts["batch_size"]
-	learning_rate = train_opts["learning_rate"]
+	batch_size = train_opts["batch_size"] * num_devices
+	learning_rate = train_opts["learning_rate"] * num_devices
 	regularizer = train_opts["regularizer"]
 
 	superpopulations_file = arguments['superpops']
@@ -524,9 +603,9 @@ if __name__ == "__main__":
 		fill_missing = False
 
 	if fill_missing:
-		print("Imputing originally missing genotypes to most common value.")
+		chief_print("Imputing originally missing genotypes to most common value.")
 	else:
-		print("Keeping originally missing genotypes.")
+		chief_print("Keeping originally missing genotypes.")
 		missing_mask_input = True
 		n_input_channels = 2
 
@@ -592,6 +671,7 @@ if __name__ == "__main__":
 				exit(1)
 
 	else:
+		# TODO: rework the data generators to read from parquet
 		dg = data_generator_ae(data_prefix,
 		                       normalization_mode = norm_mode,
 		                       normalization_options = norm_opts,
@@ -725,19 +805,6 @@ if __name__ == "__main__":
 		train_epochs = []
 		save_epochs = []
 
-		# get one sample (two samples?..) to run through optimization
-		# to reload model weights and optimizer variables
-		#
-		# NOTE: this piece is placed here in Richel's code,
-		# but I'm moving it under `if resume_from` as per Kristiina's code.
-		# Hence I'm commenting it out here. Might bring it back later.
-		#
-		#input_init, targets_init, ind_pop_list = dg.get_train_batch(0.0, 1)
-		#phenotargets_init = dg_ph.generate(ind_pop_list)
-		#dg.reset_batch_index()
-		#if not missing_mask_input:
-		#	input_init = input_init[:,:,0, np.newaxis]
-
 		############### setup learning rate schedule ##############
 		step_counter = resume_from * n_train_batches
 		if "lr_scheme" in train_opts.keys():
@@ -755,70 +822,74 @@ if __name__ == "__main__":
 			updated_lr = lr_schedule(step_counter)
 			lr_schedule = schedule_module(updated_lr, **schedule_args)
 
-			print("Using learning rate schedule {0}.{1} with {2}".format(train_opts["lr_scheme"]["module"],
+			chief_print("Using learning rate schedule {0}.{1} with {2}".format(train_opts["lr_scheme"]["module"],
 			                                                             train_opts["lr_scheme"]["class"],
 			                                                             schedule_args))
 		else:
 			lr_schedule = False
 
-		print("\n______________________________ Data ______________________________")
-		print("N unique train samples: {0}".format(n_unique_train_samples))
-		print("--- training on : {0}".format(n_train_samples))
-		print("N valid samples: {0}".format(n_valid_samples))
-		print("N markers: {0}".format(n_markers))
-		print("")
+		chief_print("\n______________________________ Data ______________________________")
+		chief_print("N unique train samples: {0}".format(n_unique_train_samples))
+		chief_print("--- training on : {0}".format(n_train_samples))
+		chief_print("N valid samples: {0}".format(n_valid_samples))
+		chief_print("N markers: {0}".format(n_markers))
+		chief_print("")
 
-		autoencoder = Autoencoder(model_architecture, n_markers, noise_std, regularizer)
-		if pheno_model_architecture is not None:
-			pheno_model = Autoencoder(pheno_model_architecture, 2, noise_std, regularizer)
-		else:
-			pheno_model = None
-		optimizer = tf.optimizers.Adam(learning_rate = lr_schedule)
+		with strat.scope():
+			autoencoder = Autoencoder(model_architecture, n_markers,
+			                          noise_std, regularizer)
+			if pheno_model_architecture is not None:
+				pheno_model = Autoencoder(pheno_model_architecture, 2,
+				                          noise_std, regularizer)
+			else:
+				pheno_model = None
+			optimizer = tf.optimizers.Adam(learning_rate = lr_schedule)
 
-		if resume_from:
-			print("\n______________________________ Resuming training from epoch {0} ______________________________".format(resume_from))
-			weights_file_prefix = os.path.join(train_directory, ae_weights_dir, str(resume_from))
-			print("Reading weights from {0}".format(weights_file_prefix))
-			if pheno_model is not None:
-				pheno_weights_file_prefix = os.path.join(train_directory, pheno_weights_dir, str(resume_from))
-				print("Reading phenomodel weights from {0}".format(pheno_weights_file_prefix))
+			if resume_from:
+				chief_print("\n______________________________ Resuming training from epoch {0} ______________________________".format(resume_from))
+				weights_file_prefix = os.path.join(train_directory, ae_weights_dir, str(resume_from))
+				chief_print("Reading weights from {0}".format(weights_file_prefix))
+				autoencoder.load_weights(weights_file_prefix)
 
-			# get a single sample to run through optimization to reload weights and optimizer variables
-			input_init, targets_init, ind_pop_list_init = dg.get_train_batch(0.0, 1)
-			phenotargets_init = dg_ph.generate(ind_pop_list_init)
-			dg.reset_batch_index()
+				if pheno_model is not None:
+					pheno_weights_file_prefix = os.path.join(train_directory, pheno_weights_dir, str(resume_from))
+					chief_print("Reading phenomodel weights from {0}".format(pheno_weights_file_prefix))
+					pheno_model.load_weights(pheno_weights_file_prefix)
+
+				# get a single sample to run through the model to reload weights and optimizer variables
+				input_init, targets_init, ind_pop_list_init = dg.get_train_batch(0.0, 1)
+				phenotargets_init = dg_ph.generate(ind_pop_list_init)
+				dg.reset_batch_index()
+				if not missing_mask_input:
+					input_init = input_init[:,:,0, np.newaxis]
+				
+				_, encoded_init = autoencoder(input_init[0:1], is_training = False, verbose = False)
+				if pheno_model is not None:
+					_, _ = pheno_model(encoded_init, is_training = False, verbose = False)
+
+			chief_print("\n______________________________ Train ______________________________")
+
+			# a small run-through of the model with just 2 samples for printing the dimensions of the layers (verbose=True)
+			chief_print("Model layers and dimensions:")
+			chief_print("-----------------------------")
+
+			input_test, targets_test, _ = dg.get_train_set(0.0)
 			if not missing_mask_input:
-				input_init = input_init[:,:,0, np.newaxis]
-
-			# This initializes the variables used by the optimizers,
-			# as well as any stateful metric variables
-			run_optimization(autoencoder, optimizer, loss_func, input_init, targets_init,
-			                 phenomodel=pheno_model, phenotargets=phenotargets_init,
-			                 pheno_loss_function=pheno_loss_func)
-			autoencoder.load_weights(weights_file_prefix)
+				input_test = input_test[:,:,0, np.newaxis]
+			output_test, encoded_data_test = autoencoder(input_test[0:2], is_training = False, verbose = True)
 			if pheno_model is not None:
-				pheno_model.load_weights(pheno_weights_file_prefix)
-
-		print("\n______________________________ Train ______________________________")
-
-		# a small run-through of the model with just 2 samples for printing the dimensions of the layers (verbose=True)
-		print("Model layers and dimensions:")
-		print("-----------------------------")
-
-		input_test, targets_test, _ = dg.get_train_set(0.0)
-		if not missing_mask_input:
-			input_test = input_test[:,:,0, np.newaxis]
-		output_test, encoded_data_test = autoencoder(input_test[0:2], is_training = False, verbose = True)
-		if pheno_model is not None:
-			phenoutput_test, _ = pheno_model(encoded_data_test, is_training = False, verbose = True)
+				phenoutput_test, _ = pheno_model(encoded_data_test, is_training = False, verbose = True)
 
 		######### Create objects for tensorboard summary ###############################
 
-		train_writer = tf.summary.create_file_writer(os.path.join(train_directory, 'train'))
-		valid_writer = tf.summary.create_file_writer(os.path.join(train_directory, 'valid'))
-		if pheno_model is not None:
-			train_pheno_writer = tf.summary.create_file_writer(os.path.join(train_directory, 'train_pheno'))
-			valid_pheno_writer = tf.summary.create_file_writer(os.path.join(train_directory, 'valid_pheno'))
+		if isChief:
+			train_writer = tf.summary.create_file_writer(os.path.join(train_directory, 'train'))
+			valid_writer = tf.summary.create_file_writer(os.path.join(train_directory, 'valid'))
+			if pheno_model is not None:
+				train_pheno_writer = tf.summary.create_file_writer(os.path.join(train_directory, 'train_pheno'))
+				valid_pheno_writer = tf.summary.create_file_writer(os.path.join(train_directory, 'valid_pheno'))
+
+		# TODO: log memory usage??
 
 		######################################################
 
@@ -882,19 +953,19 @@ if __name__ == "__main__":
 			train_loss_this_epoch = np.average(losses_t_batches)
 			if pheno_model is not None:
 				train_pheno_loss_this_epoch = np.average(pheno_losses_t_batches)
-			
-			with train_writer.as_default():
-				tf.summary.scalar('loss', train_loss_this_epoch, step = step_counter)
-				if lr_schedule:
-					tf.summary.scalar("learning_rate", optimizer._decayed_lr(var_dtype=tf.float32), step = step_counter)
-				else:
-					tf.summary.scalar("learning_rate", learning_rate, step = step_counter)
 
-			if pheno_model is not None:
-				with train_pheno_writer.as_default():
-					tf.summary.scalar('pheno loss', train_pheno_loss_this_epoch, step = step_counter)
+			if isChief:
+				with train_writer.as_default():
+					tf.summary.scalar('loss', train_loss_this_epoch, step = step_counter)
+					if lr_schedule:
+						tf.summary.scalar("learning_rate", optimizer._decayed_lr(var_dtype=tf.float32), step = step_counter)
+					else:
+						tf.summary.scalar("learning_rate", learning_rate, step = step_counter)
+				if pheno_model is not None:
+					with train_pheno_writer.as_default():
+						tf.summary.scalar('pheno loss', train_pheno_loss_this_epoch, step = step_counter)
 
-
+			# TODO: should the loss arrays only be stored by the chief?..
 
 			train_time = (datetime.now() - startTime).total_seconds()
 			train_times.append(train_time)
@@ -903,13 +974,14 @@ if __name__ == "__main__":
 			if pheno_model is not None:
 				pheno_losses_t.append(train_pheno_loss_this_epoch)
 
-			print("")
-			print("Epoch: {}/{}...".format(effective_epoch, epochs+resume_from))
-			print("--- Train loss: {:.4f}  time: {}".format(train_loss_this_epoch, train_time))
+			chief_print("")
+			chief_print("Epoch: {}/{}...".format(effective_epoch, epochs+resume_from))
+			chief_print("--- Train loss: {:.4f}  time: {}".format(train_loss_this_epoch, train_time))
 			if pheno_model is not None:
-				print("--- Train pheno loss: {:.4f}  time: {}".format(train_pheno_loss_this_epoch, train_time))
+				chief_print("--- Train pheno loss: {:.4f}  time: {}".format(train_pheno_loss_this_epoch, train_time))
 
-
+			# TODO: the whole validation step should be distributed!!!
+			# ok so this is where I STOP for now (Dec 20).
 			if n_valid_samples > 0:
 
 				startTime = datetime.now()
