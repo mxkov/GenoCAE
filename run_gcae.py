@@ -436,7 +436,7 @@ def save_model_weights(epoch, train_dir, weights_dir, model, prefix=""):
 
 
 if __name__ == "__main__":
-	print("tensorflow version {0}".format(tf.__version__))
+	chief_print("tensorflow version {0}".format(tf.__version__))
 	tf.keras.backend.set_floatx('float32')
 
 	try:
@@ -445,15 +445,15 @@ if __name__ == "__main__":
 		chief_print("Invalid command. Run 'python run_gcae.py --help' for more information.")
 		exit(1)
 
-	gpus_raw = tf.config.list_physical_devices(device_type="GPU")
-	chief_print("Available GPU devices:\n{}".format(gpus_raw))
-	num_physical_gpus = len(gpus_raw)
-	gpus = ["gpu:"+ str(i) for i in range(num_physical_gpus)]
-
 	for k in list(arguments.keys()):
 		knew = k.split('--')[-1]
 		arg=arguments.pop(k)
 		arguments[knew]=arg
+
+	gpus_raw = tf.config.list_physical_devices(device_type="GPU")
+	chief_print("Available GPU devices:\n{}".format(gpus_raw))
+	num_physical_gpus = len(gpus_raw)
+	gpus = ["gpu:"+ str(i) for i in range(num_physical_gpus)]
 
 
 	## Define distribution strategies
@@ -637,9 +637,9 @@ if __name__ == "__main__":
 		if os.path.isfile(encoded_data_file):
 			encoded_data = h5py.File(encoded_data_file, 'r')
 		else:
-			print("------------------------------------------------------------------------")
-			print("Error: File {0} not found.".format(encoded_data_file))
-			print("------------------------------------------------------------------------")
+			chief_print("------------------------------------------------------------------------")
+			chief_print("Error: File {0} not found.".format(encoded_data_file))
+			chief_print("------------------------------------------------------------------------")
 			exit(1)
 
 		epochs = get_projected_epochs(encoded_data_file)
@@ -649,23 +649,23 @@ if __name__ == "__main__":
 			if epoch in epochs:
 				epochs = [epoch]
 			else:
-				print("------------------------------------------------------------------------")
-				print("Error: Epoch {0} not found in {1}.".format(epoch, encoded_data_file))
-				print("------------------------------------------------------------------------")
+				chief_print("------------------------------------------------------------------------")
+				chief_print("Error: Epoch {0} not found in {1}.".format(epoch, encoded_data_file))
+				chief_print("------------------------------------------------------------------------")
 				exit(1)
 
 		if doing_clustering:
 			if arguments['animate']:
-				print("------------------------------------------------------------------------")
-				print("Error: Animate not supported for genetic clustering model.")
-				print("------------------------------------------------------------------------")
+				chief_print("------------------------------------------------------------------------")
+				chief_print("Error: Animate not supported for genetic clustering model.")
+				chief_print("------------------------------------------------------------------------")
 				exit(1)
 
 
 			if arguments['plot'] and not superpopulations_file:
-				print("------------------------------------------------------------------------")
-				print("Error: Plotting of genetic clustering results requires a superpopulations file.")
-				print("------------------------------------------------------------------------")
+				chief_print("------------------------------------------------------------------------")
+				chief_print("Error: Plotting of genetic clustering results requires a superpopulations file.")
+				chief_print("------------------------------------------------------------------------")
 				exit(1)
 
 	else:
@@ -1049,13 +1049,16 @@ if __name__ == "__main__":
 						                   prefix = "min_valid.")
 
 				evals_since_min_valid_loss = effective_epoch - min_valid_loss_epoch
-				print("--- Valid loss: {:.4f}  time: {} min loss: {:.4f} epochs since: {}".format(
-										valid_loss_this_epoch, valid_time, min_valid_loss, evals_since_min_valid_loss))
+				chief_print("--- Valid loss: {:.4f}  time: {} min loss: {:.4f} epochs since: {}".format(
+				    valid_loss_this_epoch, valid_time,
+				    min_valid_loss,
+				    evals_since_min_valid_loss))
 
 				if pheno_model is not None:
-					print("--- Valid pheno loss: {:.4f}  time: {} min loss: {:.4f} epochs since: {}".format(
-					      valid_pheno_loss_this_epoch, valid_time, min_valid_pheno_loss,
-					      effective_epoch - min_valid_pheno_loss_epoch))
+					chief_print("--- Valid pheno loss: {:.4f}  time: {} min loss: {:.4f} epochs since: {}".format(
+					    valid_pheno_loss_this_epoch, valid_time,
+					    min_valid_pheno_loss,
+					    effective_epoch - min_valid_pheno_loss_epoch))
 
 				if evals_since_min_valid_loss >= patience:
 					break
@@ -1134,7 +1137,7 @@ if __name__ == "__main__":
 			plt.savefig(os.path.join(train_directory, "losses_from_train_pheno.png"), dpi=300)
 			plt.close()
 
-		print("Done training. Wrote to {0}".format(train_directory))
+		chief_print("Done training. Wrote to {0}".format(train_directory))
 
 	if arguments['project']:
 
@@ -1153,8 +1156,8 @@ if __name__ == "__main__":
 			except:
 				continue
 
-		print("Projecting epochs: {0}".format(epochs))
-		print("Already projected: {0}".format(projected_epochs))
+		chief_print("Projecting epochs: {0}".format(epochs))
+		chief_print("Already projected: {0}".format(projected_epochs))
 
 		batch_size_project = 50
 		sparsify_fraction = 0.0
@@ -1188,12 +1191,12 @@ if __name__ == "__main__":
 		edgecolors_per_epoch = []
 
 		for epoch in epochs:
-			print("########################### epoch {0} ###########################".format(epoch))
+			chief_print("########################### epoch {0} ###########################".format(epoch))
 			weights_file_prefix = os.path.join(train_directory, ae_weights_dir, str(epoch))
-			print("Reading weights from {0}".format(weights_file_prefix))
+			chief_print("Reading weights from {0}".format(weights_file_prefix))
 			if pheno_model is not None:
 				pheno_weights_file_prefix = os.path.join(train_directory, pheno_weights_dir, str(epoch))
-				print("Reading phenomodel weights from {0}".format(pheno_weights_file_prefix))
+				chief_print("Reading phenomodel weights from {0}".format(pheno_weights_file_prefix))
 
 			input, targets, _= dg.get_train_batch(sparsify_fraction, 1)
 			if not missing_mask_input:
@@ -1307,7 +1310,7 @@ if __name__ == "__main__":
 				try:
 					scaler = dg.scaler
 				except:
-					print("Could not calculate predicted genotypes and genotype concordance. No scaler available in data handler.")
+					chief_print("Could not calculate predicted genotypes and genotype concordance. No scaler available in data handler.")
 					genotypes_output = np.array([])
 					true_genotypes = np.array([])
 
@@ -1328,7 +1331,7 @@ if __name__ == "__main__":
 				genotype_concordance_metric.update_state(y_pred = genotypes_output[orig_nonmissing_mask], y_true = true_genotypes[orig_nonmissing_mask])
 
 			else:
-				print("Could not calculate predicted genotypes and genotype concordance. Not implemented for loss {0} and normalization {1}.".format(train_opts["loss"]["class"], data_opts["norm_mode"]))
+				chief_print("Could not calculate predicted genotypes and genotype concordance. Not implemented for loss {0} and normalization {1}.".format(train_opts["loss"]["class"], data_opts["norm_mode"]))
 				genotypes_output = np.array([])
 				true_genotypes = np.array([])
 
@@ -1441,7 +1444,7 @@ if __name__ == "__main__":
 
 	if arguments['animate']:
 
-		print("Animating epochs {}".format(epochs))
+		chief_print("Animating epochs {}".format(epochs))
 
 		FFMpegWriter = animation.writers['ffmpeg']
 		scatter_points_per_epoch = []
@@ -1452,7 +1455,7 @@ if __name__ == "__main__":
 		ind_pop_list_train = read_h5(encoded_data_file, "ind_pop_list_train")
 
 		for epoch in epochs:
-			print("########################### epoch {0} ###########################".format(epoch))
+			chief_print("########################### epoch {0} ###########################".format(epoch))
 
 			encoded_train = read_h5(encoded_data_file, "{0}_encoded_train".format(epoch))
 
@@ -1483,7 +1486,7 @@ if __name__ == "__main__":
 
 	if arguments['evaluate']:
 
-		print("Evaluating epochs {}".format(epochs))
+		chief_print("Evaluating epochs {}".format(epochs))
 
 		# all metrics assumed to have a single value per epoch
 		if arguments['metrics']:
@@ -1506,7 +1509,7 @@ if __name__ == "__main__":
 				pass
 
 		for epoch in epochs:
-			print("########################### epoch {0} ###########################".format(epoch))
+			chief_print("########################### epoch {0} ###########################".format(epoch))
 
 			encoded_train = read_h5(encoded_data_file, "{0}_encoded_train".format(epoch))
 
@@ -1537,7 +1540,7 @@ if __name__ == "__main__":
 					else:
 						min_points_required = n_latent_dim + 2
 					hull_error = convex_hull_error(coords_by_pop, plot=False, min_points_required= min_points_required)
-					print("------ hull error : {}".format(hull_error))
+					chief_print("------ hull error : {}".format(hull_error))
 
 					metrics[m].append(hull_error)
 
@@ -1561,7 +1564,7 @@ if __name__ == "__main__":
 
 
 					f1_score_avg, f1_score_per_pop = f1_score_kNN(encoded_train, pop_list, pops_to_use, k = k)
-					print("------ f1 score with {0}NN :{1}".format(k, f1_score_avg))
+					chief_print("------ f1 score with {0}NN :{1}".format(k, f1_score_avg))
 					metrics[m].append(f1_score_avg)
 					assert len(f1_score_per_pop) == len(pops_to_use)
 					f1_scores_by_pop["avg"][this_f1_score_index] =  "{:.4f}".format(f1_score_avg)
@@ -1577,9 +1580,9 @@ if __name__ == "__main__":
 						f1_scores_by_pop[pops_to_use[p]][this_f1_score_index] =  "{:.4f}".format(f1_score_per_pop[p])
 
 				else:
-					print("------------------------------------------------------------------------")
-					print("Error: Metric {0} is not implemented.".format(m))
-					print("------------------------------------------------------------------------")
+					chief_print("------------------------------------------------------------------------")
+					chief_print("Error: Metric {0} is not implemented.".format(m))
+					chief_print("------------------------------------------------------------------------")
 
 			write_f1_scores_to_csv(results_directory, "epoch_{0}".format(epoch), superpopulations_file, f1_scores_by_pop, coords_by_pop)
 
@@ -1599,7 +1602,7 @@ if __name__ == "__main__":
 
 	if arguments['plot']:
 
-		print("Plotting epochs {}".format(epochs))
+		chief_print("Plotting epochs {}".format(epochs))
 
 		ind_pop_list_train = read_h5(encoded_data_file, "ind_pop_list_train")
 		pop_list = []
@@ -1611,7 +1614,7 @@ if __name__ == "__main__":
 				pass
 
 		for epoch in epochs:
-			print("########################### epoch {0} ###########################".format(epoch))
+			chief_print("########################### epoch {0} ###########################".format(epoch))
 
 			encoded_train = read_h5(encoded_data_file, "{0}_encoded_train".format(epoch))
 
