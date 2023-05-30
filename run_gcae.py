@@ -321,6 +321,71 @@ class Autoencoder(Model):
 		return x
 
 
+@tf.function
+def run_optimization(model, optimizer, loss_function, input_, targets,
+                     phenomodel=None, phenotargets=None,
+                     pheno_loss_function=None):
+	'''
+	Run one step of optimization process based on the given data.
+
+	:param model: a tf.keras.Model
+	:param optimizer: a tf.keras.optimizers
+	:param loss_function: a loss function
+	:param input: input genotype data
+	:param targets: target genotype data
+	:param phenomodel: a tf.keras.Model
+	:param phenotargets: target phenotype data
+	:return: loss function values for model and phenomodel
+	'''
+	def _combine_gradients(grad1, grad2):
+		alpha_nom = tf.constant(0.)
+		alpha_denom = tf.constant(1.0e-30)
+		for g1, g2 in zip(grad1, grad2):
+			if g1 is not None and g2 is not None:
+				gdiff = g2 - g1
+				alpha_nom += tf.math.reduce_sum(gdiff * g2)
+				alpha_denom += tf.math.reduce_sum(gdiff * gdiff)
+		alpha = alpha_nom / alpha_denom
+		alpha_capped = tf.clip_by_value(alpha, 0., 1.)
+		grad = []
+		for g1, g2 in zip(grad1, grad2):
+			if g1 is None:
+				grad.append(g2)
+			elif g2 is None:
+				grad.append(g1)
+			else:
+				grad.append(g1*(alpha_capped) + g2*(1.0-alpha_capped))
+		return grad, alpha
+
+	if phenomodel is not None:
+		if phenotargets is None or pheno_loss_function is None:
+			raise ValueError('phenomodel is given but targets and/or '+
+			                 'loss function are not')
+
+	allvars = model.trainable_variables + (phenomodel.trainable_variables
+	                                       if phenomodel is not None else [])
+
+	with tf.GradientTape() as g:
+		output, _ = model(input_, is_training=True)
+		loss_value = loss_function(y_pred = output, y_true = targets)
+		loss_value += sum(model.losses)
+	gradients = g.gradient(loss_value, allvars)
+
+	if phenomodel is not None:
+		with tf.GradientTape() as g2:
+			_, encoded_data = model(input_, is_training=True)
+			phenoutput, _ = phenomodel(encoded_data, is_training=True)
+			pheno_loss_value = pheno_loss_function(phenoutput, phenotargets)
+		phenogradients = g2.gradient(pheno_loss_value, allvars)
+		gradients, _ = _combine_gradients(gradients, phenogradients)
+	else:
+		pheno_loss_value = None
+
+	optimizer.apply_gradients(zip(gradients, allvars))
+	return loss_value, pheno_loss_value
+
+
+
 def get_batches(n_samples, batch_size):
 	n_batches = n_samples // batch_size
 
@@ -423,78 +488,6 @@ if __name__ == "__main__":
 
 	num_devices = strat.num_replicas_in_sync
 	chief_print('Number of devices: {}'.format(num_devices))
-
-
-	# how about we declare our tf-functions here
-	# (except losses, which have to be declared after parsing args)
-
-	@tf.function
-	def run_optimization(model, optimizer, loss_function, input_, targets,
-	                     phenomodel=None, phenotargets=None,
-	                     pheno_loss_function=None):
-		'''
-		Run one step of optimization process based on the given data.
-
-		:param model: a tf.keras.Model
-		:param optimizer: a tf.keras.optimizers
-		:param loss_function: a loss function
-		:param input: input genotype data
-		:param targets: target genotype data
-		:param phenomodel: a tf.keras.Model
-		:param phenotargets: target phenotype data
-		:return: loss function values for model and phenomodel
-		'''
-		def _combine_gradients(grad1, grad2):
-			alpha_nom = tf.constant(0.)
-			alpha_denom = tf.constant(1.0e-30)
-			for g1, g2 in zip(grad1, grad2):
-				if g1 is not None and g2 is not None:
-					gdiff = g2 - g1
-					alpha_nom += tf.math.reduce_sum(gdiff * g2)
-					alpha_denom += tf.math.reduce_sum(gdiff * gdiff)
-			alpha = alpha_nom / alpha_denom
-			alpha_capped = tf.clip_by_value(alpha, 0., 1.)
-			grad = []
-			for g1, g2 in zip(grad1, grad2):
-				if g1 is None:
-					grad.append(g2)
-				elif g2 is None:
-					grad.append(g1)
-				else:
-					grad.append(g1*(alpha_capped) + g2*(1.0-alpha_capped))
-			return grad, alpha
-	
-		if pheno_loss_function is None:
-			print("Warning: pheno loss function not specified, using default")
-			def pheno_loss_function(y_pred, y_true):
-				return tf.math.reduce_sum(tf.square(y_pred - y_true)) * 1e-2
-
-		allvars = model.trainable_variables + (phenomodel.trainable_variables
-		                                       if phenomodel is not None else [])
-
-		def step_fn(input1):
-			with tf.GradientTape() as g:
-				output, _ = model(input1, is_training=True)
-				loss_value = loss_function(y_pred = output, y_true = targets)
-				loss_value += sum(model.losses)
-			gradients = g.gradient(loss_value, allvars)
-			if phenomodel is not None:
-				with tf.GradientTape() as g2:
-					_, encoded_data = model(input1, is_training=True)
-					phenoutput, _ = phenomodel(encoded_data, is_training=True)
-					pheno_loss_value = pheno_loss_function(phenoutput, phenotargets)
-				phenogradients = g2.gradient(pheno_loss_value, allvars)
-				gradients, _ = _combine_gradients(gradients, phenogradients)
-			else:
-				pheno_loss_value = None
-			optimizer.apply_gradients(zip(gradients, allvars))
-			return loss_value, pheno_loss_value
-
-		# pr means per-replica
-		pr_losses, pr_pheno_losses = strat.run(step_fn, args = (input_,))
-		final_loss = strat.reduce("SUM", pr_losses, axis=None)
-		final_pheno_loss = strat.reduce("SUM", pr_pheno_losses, axis=None)
-		return final_loss, final_pheno_loss
 
 
 	if arguments["trainedmodeldir"]:
