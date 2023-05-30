@@ -54,6 +54,9 @@ import h5py
 import matplotlib.animation as animation
 from pathlib import Path
 
+# TODO: enable reproducibility w settable random state?
+# need both np.random.seed and tf.random.set_seed
+
 
 def _isChief():
 	if "isChief" in os.environ:
@@ -454,6 +457,8 @@ if __name__ == "__main__":
 
 
 	## Define distribution strategies
+
+	# TODO: handle environment interaction properly!
 
 	if "SLURMD_NODENAME" in os.environ:
 
